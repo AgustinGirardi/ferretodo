@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Phone, Truck, Clock, Search, User, ShoppingCart, Menu } from "lucide-react";
 import { site } from "@/lib/site";
 import { categories } from "@/lib/catalog-data";
+import { iconMap } from "@/lib/icons";
 
 function UtilityBar() {
   return (
@@ -78,7 +79,7 @@ function CategoryChips() {
     <nav className="border-b border-border bg-bg" aria-label="Categorías">
       <div className="container mx-auto flex gap-2 overflow-x-auto px-4 py-2.5">
         {categories.map((cat) => {
-          const Icon = cat.icon;
+          const Icon = iconMap[cat.iconName];
           return (
             <Link
               key={cat.slug}

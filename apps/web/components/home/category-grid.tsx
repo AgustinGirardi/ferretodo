@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { categories } from "@/lib/catalog-data";
+import { iconMap } from "@/lib/icons";
 
 export function CategoryGrid() {
   return (
@@ -7,7 +8,7 @@ export function CategoryGrid() {
       <h2 className="mb-5 text-xl font-bold text-fg">Comprá por categoría</h2>
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-9">
         {categories.map((cat) => {
-          const Icon = cat.icon;
+          const Icon = iconMap[cat.iconName];
           return (
             <Link
               key={cat.slug}

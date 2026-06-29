@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Check, AlertTriangle, X, ShoppingCart } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { formatPrice } from "@/lib/format";
+import { iconMap } from "@/lib/icons";
 import type { MockProduct } from "@/lib/catalog-data";
 
 function StockBadge({ stock }: { stock: MockProduct["stock"] }) {
@@ -25,7 +26,7 @@ function StockBadge({ stock }: { stock: MockProduct["stock"] }) {
 }
 
 export function ProductCard({ product }: { product: MockProduct }) {
-  const Icon = product.icon;
+  const Icon = iconMap[product.iconName];
   const discount = product.previousPrice
     ? Math.round((1 - product.price / product.previousPrice) * 100)
     : 0;
