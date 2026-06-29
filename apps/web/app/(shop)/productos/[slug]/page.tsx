@@ -139,7 +139,7 @@ export default async function ProductPage({
             </span>
           </div>
 
-          <ProductPurchase outOfStock={product.stock === "out"} />
+          <ProductPurchase productId={product.id} outOfStock={product.stock === "out"} />
 
           <a
             href={whatsappLink(`Hola, quería consultar por: ${product.name}`)}

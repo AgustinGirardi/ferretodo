@@ -62,6 +62,10 @@ export function getProductBySlug(slug: string) {
   return products.find((p) => p.slug === slug);
 }
 
+export function getProductById(id: string) {
+  return products.find((p) => p.id === id);
+}
+
 export function getRelatedProducts(product: MockProduct, limit = 4) {
   return products
     .filter((p) => p.categorySlug === product.categorySlug && p.id !== product.id)

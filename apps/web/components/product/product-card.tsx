@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Check, AlertTriangle, X, ShoppingCart } from "lucide-react";
-import { Button } from "@ferretodo/ui";
+import { Check, AlertTriangle, X } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import { iconMap } from "@/lib/icons";
+import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import type { MockProduct } from "@/lib/catalog-data";
 
 function StockBadge({ stock }: { stock: MockProduct["stock"] }) {
@@ -70,14 +70,7 @@ export function ProductCard({ product }: { product: MockProduct }) {
           <StockBadge stock={product.stock} />
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          className="mt-2 w-full"
-          disabled={product.stock === "out"}
-        >
-          <ShoppingCart className="h-4 w-4" /> Agregar
-        </Button>
+        <AddToCartButton productId={product.id} outOfStock={product.stock === "out"} />
       </div>
     </article>
   );

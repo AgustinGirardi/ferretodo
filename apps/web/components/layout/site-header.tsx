@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Phone, Truck, Clock, Search, User, ShoppingCart, Menu } from "lucide-react";
+import { Phone, Truck, Clock, Search, User, Menu } from "lucide-react";
 import { site } from "@/lib/site";
 import { categories } from "@/lib/catalog-data";
 import { iconMap } from "@/lib/icons";
+import { CartLink } from "./cart-link";
 
 function UtilityBar() {
   return (
@@ -61,13 +62,7 @@ function MainBar() {
             <User className="h-5 w-5" />
             <span className="hidden md:inline">Mi cuenta</span>
           </Link>
-          <Link
-            href="/carrito"
-            className="relative inline-flex items-center gap-1.5 text-sm text-fg hover:text-brand-600"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            <span className="hidden md:inline">Carrito</span>
-          </Link>
+          <CartLink />
         </div>
       </div>
     </div>
