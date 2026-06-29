@@ -58,6 +58,49 @@ export function getCategory(slug: string) {
   return categories.find((c) => c.slug === slug);
 }
 
+/** Quita acentos y pasa a minúsculas para comparar sin importar tildes/mayúsculas. */
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
+/**
+ * Búsqueda sobre nombre, marca, código, descripción, etiquetas y categoría.
+ * Tolerante a acentos y mayúsculas. Requiere que todas las palabras coincidan
+ * (AND) y rankea por dónde matchea (nombre > marca) y ventas.
+ */
+export function searchProducts(q: string, limit?: number): MockProduct[] {
+  const term = normalize(q.trim());
+  if (!term) return [];
+  const words = term.split(/\s+/).filter(Boolean);
+
+  const scored = products
+    .map((p) => {
+      const categoryName = getCategory(p.categorySlug)?.name ?? "";
+      const haystack = normalize(
+        [p.name, p.brand, p.sku, p.shortDescription, p.tags.join(" "), categoryName].join(" "),
+      );
+      if (!words.every((w) => haystack.includes(w))) return null;
+
+      let score = (p.salesRank ?? 0) / 100;
+      const nameN = normalize(p.name);
+      const brandN = normalize(p.brand);
+      for (const w of words) {
+        if (nameN.includes(w)) score += 10;
+        if (brandN.includes(w)) score += 5;
+        if (normalize(p.sku).includes(w)) score += 8;
+      }
+      return { p, score };
+    })
+    .filter((x): x is { p: MockProduct; score: number } => x !== null)
+    .sort((a, b) => b.score - a.score);
+
+  const result = scored.map((x) => x.p);
+  return limit ? result.slice(0, limit) : result;
+}
+
 export function getProductBySlug(slug: string) {
   return products.find((p) => p.slug === slug);
 }

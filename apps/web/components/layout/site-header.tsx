@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Phone, Truck, Clock, Search, User, Menu } from "lucide-react";
+import { Phone, Truck, Clock, User, Menu } from "lucide-react";
 import { site } from "@/lib/site";
 import { categories } from "@/lib/catalog-data";
 import { iconMap } from "@/lib/icons";
 import { CartLink } from "./cart-link";
+import { SearchBar } from "@/components/search/search-bar";
 
 function UtilityBar() {
   return (
@@ -35,24 +36,7 @@ function MainBar() {
           FERRE<span className="text-brand-500">TODO</span>
         </Link>
 
-        <form
-          action="/buscar"
-          className="hidden flex-1 items-center overflow-hidden rounded-md border border-border focus-within:border-brand-500 sm:flex"
-        >
-          <input
-            name="q"
-            placeholder="Buscar productos, marcas o códigos..."
-            className="flex-1 bg-transparent px-4 py-2.5 text-sm text-fg outline-none placeholder:text-muted"
-            aria-label="Buscar productos"
-          />
-          <button
-            type="submit"
-            className="flex h-full items-center bg-brand-500 px-4 text-white transition-colors hover:bg-brand-600"
-            aria-label="Buscar"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-        </form>
+        <SearchBar className="hidden flex-1 sm:block" />
 
         <div className="ml-auto flex items-center gap-4 sm:ml-0">
           <Link
