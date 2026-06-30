@@ -16,8 +16,8 @@ export function ProductGallery({ iconName, alt }: { iconName: IconName; alt: str
   const Icon = iconMap[iconName];
 
   return (
-    <div className="flex flex-col-reverse gap-3 sm:flex-row">
-      <div className="flex gap-3 sm:flex-col">
+    <div className="flex flex-col-reverse items-start gap-3 sm:flex-row">
+      <div className="flex shrink-0 gap-3 sm:flex-col">
         {tints.map((tint, i) => (
           <button
             key={i}
@@ -33,10 +33,9 @@ export function ProductGallery({ iconName, alt }: { iconName: IconName; alt: str
       </div>
 
       <div
-        className={`group relative flex flex-1 items-center justify-center rounded-xl border border-border ${tints[active]}`}
-        style={{ aspectRatio: "1 / 1" }}
+        className={`relative flex aspect-square w-full min-w-0 flex-1 items-center justify-center rounded-xl border border-border ${tints[active]}`}
       >
-        <Icon className="h-40 w-40 text-muted/40" strokeWidth={0.75} aria-label={alt} />
+        <Icon className="h-28 w-28 text-muted/40 sm:h-36 sm:w-36" strokeWidth={0.75} aria-label={alt} />
         <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-bg/80 px-2 py-1 text-xs text-muted">
           <ZoomIn className="h-3.5 w-3.5" /> Zoom
         </span>

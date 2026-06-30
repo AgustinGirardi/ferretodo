@@ -86,9 +86,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         ]}
       />
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-2">
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {product.imageUrl ? (
-          <div className="relative aspect-square overflow-hidden rounded-xl border border-border bg-surface">
+          <div className="relative aspect-square min-w-0 overflow-hidden rounded-xl border border-border bg-surface">
             <Image
               src={product.imageUrl}
               alt={product.name}
@@ -102,7 +102,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <ProductGallery iconName={product.iconName} alt={product.name} />
         )}
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <div>
             <span className="text-sm text-muted">{product.brand}</span>
             <h1 className="text-2xl font-bold text-fg">{product.name}</h1>
