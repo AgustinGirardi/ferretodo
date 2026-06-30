@@ -3,25 +3,25 @@
 import { useState } from "react";
 import { Minus, Plus, ShoppingCart, Check, Heart } from "lucide-react";
 import { Button } from "@ferretodo/ui";
-import { useCart } from "@/lib/cart-store";
+import { useCart, type CartItemInput } from "@/lib/cart-store";
 
 interface ProductPurchaseProps {
-  productId: string;
+  item: CartItemInput;
   outOfStock?: boolean;
 }
 
 /**
  * Selector de cantidad + acciones de compra. Conectado al carrito local
- * (Zustand). En Fase 1 se sincroniza con el módulo cart de la API.
+ * (Zustand), que guarda un snapshot del producto.
  */
-export function ProductPurchase({ productId, outOfStock = false }: ProductPurchaseProps) {
+export function ProductPurchase({ item, outOfStock = false }: ProductPurchaseProps) {
   const add = useCart((s) => s.add);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [fav, setFav] = useState(false);
 
   function addToCart() {
-    add(productId, qty);
+    add(item, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }

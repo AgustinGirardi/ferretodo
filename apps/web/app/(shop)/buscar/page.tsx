@@ -3,8 +3,9 @@ import Link from "next/link";
 import { SearchX } from "lucide-react";
 import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
 import { ProductGrid } from "@/components/catalog/product-grid";
-import { searchProducts } from "@/lib/catalog";
-import { bestSellers } from "@/lib/catalog-data";
+import { searchProducts, getBestSellers } from "@/lib/products";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Búsqueda",
@@ -18,7 +19,8 @@ export default async function SearchPage({
 }) {
   const { q = "" } = await searchParams;
   const query = q.trim();
-  const results = query ? searchProducts(query) : [];
+  const results = query ? await searchProducts(query) : [];
+  const bestSellers = await getBestSellers(4);
 
   return (
     <div className="container mx-auto px-4 py-6">

@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { categories } from "@/lib/catalog-data";
 
 interface CatalogFiltersProps {
   brands: string[];
+  categories: { name: string; slug: string }[];
   showCategory?: boolean;
 }
 
-export function CatalogFilters({ brands, showCategory = true }: CatalogFiltersProps) {
+export function CatalogFilters({ brands, categories, showCategory = true }: CatalogFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

@@ -4,12 +4,15 @@ import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
 import { SortSelect } from "@/components/catalog/sort-select";
 import { ProductGrid } from "@/components/catalog/product-grid";
-import { parseQuery, queryProducts, getBrands, getCategory } from "@/lib/catalog";
-import { categories, products } from "@/lib/catalog-data";
+import {
+  parseQuery,
+  queryProducts,
+  getBrandNames,
+  getCategoryBySlug,
+  getCategories,
+} from "@/lib/products";
 
-export function generateStaticParams() {
-  return categories.map((c) => ({ slug: c.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -17,7 +20,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const category = getCategory(slug);
+  const category = await getCategoryBySlug(slug);
   if (!category) return { title: "Categoría" };
   return {
     title: category.name,
@@ -33,13 +36,16 @@ export default async function CategoryPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
-  const category = getCategory(slug);
+  const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
   const sp = await searchParams;
   const query = { ...parseQuery(sp), category: slug };
-  const results = queryProducts(query);
-  const brands = getBrands(products.filter((p) => p.categorySlug === slug));
+  const [results, brands, categories] = await Promise.all([
+    queryProducts(query),
+    getBrandNames(slug),
+    getCategories(),
+  ]);
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -50,7 +56,7 @@ export default async function CategoryPage({
       <div className="mt-6 flex flex-col gap-6 lg:flex-row">
         <aside className="lg:w-64 lg:shrink-0">
           <div className="rounded-lg border border-border bg-bg p-4 lg:sticky lg:top-40">
-            <CatalogFilters brands={brands} showCategory={false} />
+            <CatalogFilters brands={brands} categories={categories} showCategory={false} />
           </div>
         </aside>
 

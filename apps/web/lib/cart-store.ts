@@ -2,36 +2,47 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { IconName } from "./icons";
 
-export interface CartLine {
-  id: string; // productId
+/** Datos del producto que el carrito guarda al agregarlo (snapshot). */
+export interface CartItemInput {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  price: number;
+  iconName: IconName;
+  imageUrl?: string;
+}
+
+export interface CartItem extends CartItemInput {
   qty: number;
 }
 
 interface CartState {
-  items: CartLine[];
-  add: (id: string, qty?: number) => void;
+  items: CartItem[];
+  add: (item: CartItemInput, qty?: number) => void;
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
 }
 
 /**
- * Carrito persistido en localStorage. Mientras no haya backend, es la fuente de
- * verdad del carrito. En Fase 1 se sincroniza con el módulo cart de la API
- * (merge anónimo → logueado). Ver docs/04-FRONTEND.md.
+ * Carrito persistido en localStorage. Guarda un snapshot de cada producto, así
+ * el carrito funciona sin importar de dónde vengan los datos (mock o base de
+ * datos). En el futuro se sincroniza con el backend.
  */
 export const useCart = create<CartState>()(
   persist(
     (set) => ({
       items: [],
-      add: (id, qty = 1) =>
+      add: (item, qty = 1) =>
         set((s) => {
-          const existing = s.items.find((i) => i.id === id);
+          const existing = s.items.find((i) => i.id === item.id);
           if (existing) {
-            return { items: s.items.map((i) => (i.id === id ? { ...i, qty: i.qty + qty } : i)) };
+            return { items: s.items.map((i) => (i.id === item.id ? { ...i, qty: i.qty + qty } : i)) };
           }
-          return { items: [...s.items, { id, qty }] };
+          return { items: [...s.items, { ...item, qty }] };
         }),
       remove: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
       setQty: (id, qty) =>
@@ -47,5 +58,4 @@ export const useCart = create<CartState>()(
   ),
 );
 
-/** Total de unidades en el carrito. */
-export const cartCount = (items: CartLine[]) => items.reduce((n, i) => n + i.qty, 0);
+export const cartCount = (items: CartItem[]) => items.reduce((n, i) => n + i.qty, 0);

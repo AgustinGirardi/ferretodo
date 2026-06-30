@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Phone, Truck, Clock, User, Menu } from "lucide-react";
 import { site } from "@/lib/site";
-import { categories } from "@/lib/catalog-data";
+import { getCategories, type Category } from "@/lib/products";
 import { iconMap } from "@/lib/icons";
 import { CartLink } from "./cart-link";
 import { SearchBar } from "@/components/search/search-bar";
@@ -53,7 +53,7 @@ function MainBar() {
   );
 }
 
-function CategoryChips() {
+function CategoryChips({ categories }: { categories: Category[] }) {
   return (
     <nav className="border-b border-border bg-bg" aria-label="Categorías">
       <div className="container mx-auto flex gap-2 overflow-x-auto px-4 py-2.5">
@@ -74,12 +74,13 @@ function CategoryChips() {
   );
 }
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const categories = await getCategories();
   return (
     <header className="sticky top-0 z-40">
       <UtilityBar />
       <MainBar />
-      <CategoryChips />
+      <CategoryChips categories={categories} />
     </header>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { Truck, Store, MessageCircle, BadgePercent, Users } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
@@ -8,14 +9,11 @@ import { RatingStars } from "@/components/product/rating-stars";
 import { ProductPurchase } from "@/components/product/product-purchase";
 import { ProductTabs } from "@/components/product/product-tabs";
 import { ProductSection } from "@/components/home/product-section";
-import { getProductBySlug, getRelatedProducts, getCategory } from "@/lib/catalog";
-import { products } from "@/lib/catalog-data";
+import { getProductBySlug, getRelated } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
 import { whatsappLink } from "@/lib/site";
 
-export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -23,7 +21,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) return { title: "Producto no encontrado" };
   return {
     title: product.name,
@@ -32,21 +30,26 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProductPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const category = getCategory(product.categorySlug);
-  const related = getRelatedProducts(product);
+  const related = await getRelated(product);
   const discount = product.previousPrice
     ? Math.round((1 - product.price / product.previousPrice) * 100)
     : 0;
   const installment = Math.round(product.price / 12);
+
+  const snapshot = {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    brand: product.brand,
+    price: product.price,
+    iconName: product.iconName,
+    imageUrl: product.imageUrl,
+  };
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -65,31 +68,39 @@ export default async function ProductPage({
       priceCurrency: "ARS",
       price: product.price,
       availability:
-        product.stock === "out"
-          ? "https://schema.org/OutOfStock"
-          : "https://schema.org/InStock",
+        product.stock === "out" ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
     },
   };
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       <Breadcrumbs
         items={[
           { label: "Productos", href: "/productos" },
-          ...(category
-            ? [{ label: category.name, href: `/categoria/${category.slug}` }]
+          ...(product.categorySlug
+            ? [{ label: product.categoryName, href: `/categoria/${product.categorySlug}` }]
             : []),
           { label: product.name },
         ]}
       />
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2">
-        <ProductGallery iconName={product.iconName} alt={product.name} />
+        {product.imageUrl ? (
+          <div className="relative aspect-square overflow-hidden rounded-xl border border-border bg-surface">
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover"
+              priority
+            />
+          </div>
+        ) : (
+          <ProductGallery iconName={product.iconName} alt={product.name} />
+        )}
 
         <div className="flex flex-col gap-4">
           <div>
@@ -133,13 +144,18 @@ export default async function ProductPage({
             <span className="text-fg">
               <strong className="font-medium">¿Sos profesional?</strong> Constructores,
               electricistas, gasistas y plomeros tienen precios y cuenta corriente.{" "}
-              <a href={whatsappLink("Hola, soy profesional y quería consultar precios.")} className="font-medium text-brand-600 hover:underline" target="_blank" rel="noopener noreferrer">
+              <a
+                href={whatsappLink("Hola, soy profesional y quería consultar precios.")}
+                className="font-medium text-brand-600 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Pedí tu lista
               </a>
             </span>
           </div>
 
-          <ProductPurchase productId={product.id} outOfStock={product.stock === "out"} />
+          <ProductPurchase item={snapshot} outOfStock={product.stock === "out"} />
 
           <a
             href={whatsappLink(`Hola, quería consultar por: ${product.name}`)}

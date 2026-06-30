@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RatingStars } from "./rating-stars";
-import type { ProductSpec } from "@/lib/catalog-data";
+import type { ProductSpec } from "@/lib/products";
 
 interface ProductTabsProps {
   longDescription: string;

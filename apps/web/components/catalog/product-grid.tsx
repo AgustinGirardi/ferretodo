@@ -1,8 +1,8 @@
 import { PackageSearch } from "lucide-react";
 import { ProductCard } from "@/components/product/product-card";
-import type { MockProduct } from "@/lib/catalog-data";
+import type { Product } from "@/lib/products";
 
-export function ProductGrid({ products }: { products: MockProduct[] }) {
+export function ProductGrid({ products }: { products: Product[] }) {
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border py-16 text-center">

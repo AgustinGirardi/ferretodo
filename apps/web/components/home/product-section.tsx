@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ProductCard } from "@/components/product/product-card";
-import type { MockProduct } from "@/lib/catalog-data";
+import type { Product } from "@/lib/products";
 
 interface ProductSectionProps {
   title: string;
-  products: MockProduct[];
+  products: Product[];
   href?: string;
 }
 

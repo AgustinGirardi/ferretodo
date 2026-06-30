@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { categories } from "@/lib/catalog-data";
+import { getCategories } from "@/lib/products";
 import { iconMap } from "@/lib/icons";
 
-export function CategoryGrid() {
+export async function CategoryGrid() {
+  const categories = await getCategories();
+  if (categories.length === 0) return null;
+
   return (
     <section className="container mx-auto px-4 py-10">
       <h2 className="mb-5 text-xl font-bold text-fg">Comprá por categoría</h2>

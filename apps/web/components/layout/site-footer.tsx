@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { Phone, MapPin, Clock, Mail } from "lucide-react";
 import { site } from "@/lib/site";
-import { categories } from "@/lib/catalog-data";
+import { getCategories } from "@/lib/products";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const categories = await getCategories();
   return (
     <footer className="bg-[#0f172a] text-[#cbd5e1]">
       <div className="container mx-auto grid gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">

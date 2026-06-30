@@ -17,6 +17,12 @@ build/
 
 # prisma
 packages/db/prisma/*.db
+apps/web/prisma/*.db
+apps/web/prisma/*.db-journal
+
+# uploads (imágenes subidas desde el admin)
+apps/web/public/uploads/*
+!apps/web/public/uploads/.gitkeep
 
 # turbo
 .turbo/

@@ -1,0 +1,88 @@
+// FERRETODO — base de datos de la tienda (SQLite, editable desde el panel admin).
+// Portable a PostgreSQL: no usa enums ni listas escalares (tags/specs van como
+// texto/JSON), así el mismo esquema sirve para escalar en el futuro.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  iconName  String    @default("bolt")
+  position  Int       @default(0)
+  isActive  Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  isActive  Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Product {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  sku              String   @default("")
+
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id])
+  brandId          String?
+  brand            Brand?   @relation(fields: [brandId], references: [id])
+
+  price            Int
+  previousPrice    Int?
+  cost             Int?
+  stockQty         Int      @default(0)
+
+  iconName         String   @default("bolt")
+  imageUrl         String?  // foto principal (subida desde el admin)
+
+  shortDescription String   @default("")
+  longDescription  String   @default("")
+  specsJson        String   @default("[]") // JSON: [{name,value}]
+  tags             String   @default("")   // separadas por coma
+
+  rating           Float    @default(0)
+  reviewCount      Int      @default(0)
+
+  isFeatured       Boolean  @default(false)
+  isNew            Boolean  @default(false)
+  salesRank        Int      @default(0)
+
+  isActive         Boolean  @default(true)  // visible en la tienda
+  deletedAt        DateTime?                // borrado seguro (se puede recuperar)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([brandId])
+}
+
+// Ajustes editables de la portada (hero, textos, etc.)
+model SiteSetting {
+  key   String @id
+  value String
+}

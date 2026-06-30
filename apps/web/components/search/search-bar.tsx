@@ -1,22 +1,45 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { searchProducts } from "@/lib/catalog";
 import { formatPrice } from "@/lib/format";
-import { iconMap } from "@/lib/icons";
+import { iconMap, type IconName } from "@/lib/icons";
+
+interface Suggestion {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  price: number;
+  iconName: IconName;
+}
 
 export function SearchBar({ className = "" }: { className?: string }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const suggestions = useMemo(
-    () => (query.trim().length >= 2 ? searchProducts(query, 6) : []),
-    [query],
-  );
+  useEffect(() => {
+    const term = query.trim();
+    if (term.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: ctrl.signal })
+        .then((r) => r.json())
+        .then((data: Suggestion[]) => setSuggestions(data))
+        .catch(() => {});
+    }, 200);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [query]);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -68,7 +91,7 @@ export function SearchBar({ className = "" }: { className?: string }) {
           onMouseDown={() => blurTimer.current && clearTimeout(blurTimer.current)}
         >
           {suggestions.map((p) => {
-            const Icon = iconMap[p.iconName];
+            const Icon = iconMap[p.iconName] ?? iconMap.bolt;
             return (
               <li key={p.id}>
                 <button

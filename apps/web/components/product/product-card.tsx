@@ -1,11 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Check, AlertTriangle, X } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import { iconMap } from "@/lib/icons";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
-import type { MockProduct } from "@/lib/catalog-data";
+import type { Product, StockStatus } from "@/lib/products";
 
-function StockBadge({ stock }: { stock: MockProduct["stock"] }) {
+function StockBadge({ stock }: { stock: StockStatus }) {
   if (stock === "in")
     return (
       <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
@@ -25,7 +26,7 @@ function StockBadge({ stock }: { stock: MockProduct["stock"] }) {
   );
 }
 
-export function ProductCard({ product }: { product: MockProduct }) {
+export function ProductCard({ product }: { product: Product }) {
   const Icon = iconMap[product.iconName];
   const discount = product.previousPrice
     ? Math.round((1 - product.price / product.previousPrice) * 100)
@@ -35,14 +36,24 @@ export function ProductCard({ product }: { product: MockProduct }) {
     <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-bg transition-shadow hover:shadow-md">
       <Link
         href={`/productos/${product.slug}`}
-        className="relative flex aspect-square items-center justify-center bg-surface"
+        className="relative flex aspect-square items-center justify-center overflow-hidden bg-surface"
       >
         {discount > 0 && (
-          <span className="absolute left-2 top-2 rounded-full bg-sale px-2 py-0.5 text-xs font-medium text-white">
+          <span className="absolute left-2 top-2 z-10 rounded-full bg-sale px-2 py-0.5 text-xs font-medium text-white">
             -{discount}%
           </span>
         )}
-        <Icon className="h-16 w-16 text-muted/40" strokeWidth={1.25} />
+        {product.imageUrl ? (
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 50vw, 25vw"
+            className="object-cover"
+          />
+        ) : (
+          <Icon className="h-16 w-16 text-muted/40" strokeWidth={1.25} />
+        )}
       </Link>
 
       <div className="flex flex-1 flex-col gap-1.5 p-3">
@@ -70,7 +81,18 @@ export function ProductCard({ product }: { product: MockProduct }) {
           <StockBadge stock={product.stock} />
         </div>
 
-        <AddToCartButton productId={product.id} outOfStock={product.stock === "out"} />
+        <AddToCartButton
+          item={{
+            id: product.id,
+            slug: product.slug,
+            name: product.name,
+            brand: product.brand,
+            price: product.price,
+            iconName: product.iconName,
+            imageUrl: product.imageUrl,
+          }}
+          outOfStock={product.stock === "out"}
+        />
       </div>
     </article>
   );

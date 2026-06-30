@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { useCart } from "@/lib/cart-store";
-import { resolveCart, cartSubtotal, shippingZones } from "@/lib/cart-utils";
+import { cartSubtotal, shippingZones } from "@/lib/cart-utils";
 import { formatPrice } from "@/lib/format";
 import { site } from "@/lib/site";
 
@@ -60,8 +60,6 @@ export default function CheckoutPage() {
   const shippingCost = delivery === "delivery" ? (shippingZones[zone]?.cost ?? 0) : 0;
   const transferDiscount = payment === "transfer" ? Math.round(subtotal * 0.05) : 0;
   const total = subtotal + shippingCost - transferDiscount;
-
-  const lines = resolveCart(items);
 
   const step1Valid = data.name.trim() && data.email.trim() && data.phone.trim();
   const step2Valid = delivery === "pickup" || (address.street.trim() && address.number.trim());
@@ -312,12 +310,12 @@ export default function CheckoutPage() {
         <aside className="h-fit rounded-xl border border-border bg-bg p-5 lg:sticky lg:top-6">
           <h2 className="text-lg font-bold text-fg">Tu pedido</h2>
           <ul className="mt-4 space-y-3">
-            {lines.map((l) => (
-              <li key={l.product.id} className="flex justify-between gap-3 text-sm">
+            {items.map((i) => (
+              <li key={i.id} className="flex justify-between gap-3 text-sm">
                 <span className="text-muted">
-                  {l.qty}× {l.product.name}
+                  {i.qty}× {i.name}
                 </span>
-                <span className="shrink-0 font-medium text-fg">{formatPrice(l.lineTotal)}</span>
+                <span className="shrink-0 font-medium text-fg">{formatPrice(i.price * i.qty)}</span>
               </li>
             ))}
           </ul>

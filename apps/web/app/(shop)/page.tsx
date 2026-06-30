@@ -2,20 +2,26 @@ import { Hero } from "@/components/home/hero";
 import { BenefitsBar } from "@/components/home/benefits-bar";
 import { CategoryGrid } from "@/components/home/category-grid";
 import { ProductSection } from "@/components/home/product-section";
-import { featuredProducts, bestSellers } from "@/lib/catalog-data";
+import { getFeatured, getBestSellers } from "@/lib/products";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const [featured, bestSellers] = await Promise.all([getFeatured(4), getBestSellers(4)]);
+
   return (
     <>
       <Hero />
       <BenefitsBar />
-      <ProductSection title="Destacados" products={featuredProducts} />
+      {featured.length > 0 && <ProductSection title="Destacados" products={featured} />}
       <CategoryGrid />
-      <ProductSection
-        title="Más vendidos"
-        products={bestSellers}
-        href="/productos?sort=best_selling"
-      />
+      {bestSellers.length > 0 && (
+        <ProductSection
+          title="Más vendidos"
+          products={bestSellers}
+          href="/productos?sort=best_selling"
+        />
+      )}
     </>
   );
 }
