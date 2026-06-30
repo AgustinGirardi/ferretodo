@@ -115,6 +115,43 @@ export function PortadaForm({ initial }: { initial: HomeSettings }) {
           </Field>
         </div>
 
+        <div className="border-t border-border pt-5">
+          <p className="mb-3 text-sm font-medium text-fg">Franja de beneficios</p>
+          <p className="mb-3 text-xs text-muted">
+            Los 4 textos que aparecen debajo del banner (los íconos son fijos).
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="flex flex-col gap-2 rounded-lg border border-border p-3">
+                <input
+                  name={`benefit${n}Title`}
+                  defaultValue={initial[`benefit${n}Title` as keyof typeof initial]}
+                  className="input"
+                  placeholder={`Beneficio ${n} — título`}
+                />
+                <input
+                  name={`benefit${n}Text`}
+                  defaultValue={initial[`benefit${n}Text` as keyof typeof initial]}
+                  className="input"
+                  placeholder={`Beneficio ${n} — descripción`}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-5">
+          <p className="mb-3 text-sm font-medium text-fg">Títulos de secciones</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Sección de destacados">
+              <input name="featuredTitle" defaultValue={initial.featuredTitle} className="input" />
+            </Field>
+            <Field label="Sección de más vendidos">
+              <input name="bestSellersTitle" defaultValue={initial.bestSellersTitle} className="input" />
+            </Field>
+          </div>
+        </div>
+
         <div className="flex items-center gap-3 border-t border-border pt-5">
           <Button type="submit" variant="primary" size="lg" disabled={uploading || pending}>
             {pending ? "Guardando…" : "Guardar cambios"}

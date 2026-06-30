@@ -1,20 +1,25 @@
 import { Truck, CreditCard, Store, Headphones } from "lucide-react";
+import { getHomeSettings } from "@/lib/settings";
 
-const benefits = [
-  { icon: Truck, title: "Envíos en Río Cuarto", text: "Costo por zona, rápido y seguro" },
-  { icon: CreditCard, title: "Hasta 12 cuotas", text: "Con tarjeta o Mercado Pago" },
-  { icon: Store, title: "Retiro en el local", text: "Comprá online, retirá hoy" },
-  { icon: Headphones, title: "Atención profesional", text: "Te asesoramos por WhatsApp" },
-];
+const icons = [Truck, CreditCard, Store, Headphones];
 
-export function BenefitsBar() {
+export async function BenefitsBar() {
+  const s = await getHomeSettings();
+  const benefits = [
+    { title: s.benefit1Title, text: s.benefit1Text },
+    { title: s.benefit2Title, text: s.benefit2Text },
+    { title: s.benefit3Title, text: s.benefit3Text },
+    { title: s.benefit4Title, text: s.benefit4Text },
+  ];
+
   return (
     <section className="border-y border-border bg-bg">
       <div className="container mx-auto grid grid-cols-2 gap-4 px-4 py-6 lg:grid-cols-4">
-        {benefits.map((b) => {
-          const Icon = b.icon;
+        {benefits.map((b, i) => {
+          const Icon = icons[i] ?? Truck;
+          if (!b.title && !b.text) return null;
           return (
-            <div key={b.title} className="flex items-center gap-3">
+            <div key={i} className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
                 <Icon className="h-5 w-5" />
               </div>

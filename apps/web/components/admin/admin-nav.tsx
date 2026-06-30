@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   Package,
   Tags,
+  Tag,
   Store,
   LayoutTemplate,
   UserCog,
@@ -17,6 +18,7 @@ const items = [
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag, exact: false },
   { href: "/admin/productos", label: "Productos", icon: Package, exact: false },
   { href: "/admin/categorias", label: "Categorías", icon: Tags, exact: false },
+  { href: "/admin/marcas", label: "Marcas", icon: Tag, exact: false },
   { href: "/admin/portada", label: "Portada", icon: LayoutTemplate, exact: false },
   { href: "/admin/cuenta", label: "Mi cuenta", icon: UserCog, exact: false },
 ];
