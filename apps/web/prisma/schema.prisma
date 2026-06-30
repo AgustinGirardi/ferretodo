@@ -86,3 +86,39 @@ model SiteSetting {
   key   String @id
   value String
 }
+
+model Order {
+  id             String      @id @default(cuid())
+  orderNumber    String      @unique
+  customerName   String
+  customerEmail  String
+  customerPhone  String
+  deliveryMethod String // "pickup" | "delivery"
+  zone           String?
+  address        String?
+  paymentMethod  String // "mercadopago" | "transfer" | "cash"
+  status         String      @default("PENDING") // PENDING, PREPARING, READY, DELIVERED, CANCELLED
+  subtotal       Int
+  shippingCost   Int         @default(0)
+  discount       Int         @default(0)
+  total          Int
+  notes          String?
+  items          OrderItem[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id          String @id @default(cuid())
+  orderId     String
+  order       Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  productName String
+  unitPrice   Int
+  quantity    Int
+  lineTotal   Int
+
+  @@index([orderId])
+}

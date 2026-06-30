@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { useCart } from "@/lib/cart-store";
+import { createOrder } from "./actions";
 import { cartSubtotal, shippingZones } from "@/lib/cart-utils";
 import { formatPrice } from "@/lib/format";
 import { site } from "@/lib/site";
@@ -55,6 +56,8 @@ export default function CheckoutPage() {
   const [done, setDone] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [placedTotal, setPlacedTotal] = useState(0);
+  const [placing, setPlacing] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
   const subtotal = cartSubtotal(items);
   const shippingCost = delivery === "delivery" ? (shippingZones[zone]?.cost ?? 0) : 0;
@@ -64,13 +67,28 @@ export default function CheckoutPage() {
   const step1Valid = data.name.trim() && data.email.trim() && data.phone.trim();
   const step2Valid = delivery === "pickup" || (address.street.trim() && address.number.trim());
 
-  function placeOrder() {
-    const year = new Date().getFullYear();
-    const n = Math.floor(10000 + Math.random() * 90000);
-    setOrderNumber(`FT-${year}-${n}`);
-    setPlacedTotal(total);
-    setDone(true);
-    clear();
+  async function placeOrder() {
+    setPlacing(true);
+    setOrderError("");
+    const res = await createOrder({
+      customer: data,
+      delivery: {
+        method: delivery,
+        zone: delivery === "delivery" ? zone : undefined,
+        address: delivery === "delivery" ? `${address.street} ${address.number}`.trim() : undefined,
+      },
+      payment,
+      items: items.map((i) => ({ productId: i.id, qty: i.qty })),
+    });
+    if (res.ok && res.orderNumber) {
+      setOrderNumber(res.orderNumber);
+      setPlacedTotal(res.total ?? total);
+      setDone(true);
+      clear();
+    } else {
+      setOrderError(res.error ?? "No se pudo registrar el pedido. Probá de nuevo.");
+    }
+    setPlacing(false);
   }
 
   if (!mounted) {
@@ -295,12 +313,18 @@ export default function CheckoutPage() {
                 />
               </div>
 
+              {orderError && (
+                <p className="rounded-md bg-[#fceaea] px-3 py-2 text-sm text-[#a32d2d]">
+                  {orderError}
+                </p>
+              )}
+
               <div className="flex justify-between">
-                <Button variant="ghost" size="lg" onClick={() => setStep(2)}>
+                <Button variant="ghost" size="lg" onClick={() => setStep(2)} disabled={placing}>
                   <ArrowLeft className="h-5 w-5" /> Volver
                 </Button>
-                <Button variant="primary" size="lg" onClick={placeOrder}>
-                  Confirmar pedido <ArrowRight className="h-5 w-5" />
+                <Button variant="primary" size="lg" onClick={placeOrder} disabled={placing}>
+                  {placing ? "Registrando…" : "Confirmar pedido"} <ArrowRight className="h-5 w-5" />
                 </Button>
               </div>
             </section>

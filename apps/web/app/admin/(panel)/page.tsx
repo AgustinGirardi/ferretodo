@@ -1,27 +1,36 @@
 import Link from "next/link";
-import { Package, Tags, AlertTriangle, BadgePercent, Plus, ArrowRight } from "lucide-react";
+import { ShoppingBag, AlertTriangle, BadgePercent, Plus, ChevronRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { formatPrice } from "@/lib/format";
+import { orderStatus } from "@/lib/order-status";
 
 export const dynamic = "force-dynamic";
 
-async function getStats() {
-  const [products, categories, lowStock, onSale] = await Promise.all([
+async function getData() {
+  const [products, lowStock, onSale, ordersCount, pending, revenueAgg, recent] = await Promise.all([
     prisma.product.count({ where: { deletedAt: null } }),
-    prisma.category.count({ where: { isActive: true } }),
     prisma.product.count({ where: { deletedAt: null, stockQty: { lte: 5 } } }),
     prisma.product.count({ where: { deletedAt: null, previousPrice: { not: null } } }),
+    prisma.order.count(),
+    prisma.order.count({ where: { status: "PENDING" } }),
+    prisma.order.aggregate({ _sum: { total: true }, where: { status: { not: "CANCELLED" } } }),
+    prisma.order.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
-  return { products, categories, lowStock, onSale };
+  return {
+    products, lowStock, onSale, ordersCount, pending,
+    revenue: revenueAgg._sum.total ?? 0,
+    recent,
+  };
 }
 
 export default async function AdminDashboard() {
-  const stats = await getStats();
+  const d = await getData();
 
   const cards = [
-    { label: "Productos", value: stats.products, icon: Package, href: "/admin/productos" },
-    { label: "Categorías", value: stats.categories, icon: Tags, href: "/admin/categorias" },
-    { label: "Stock bajo", value: stats.lowStock, icon: AlertTriangle, href: "/admin/productos" },
-    { label: "En oferta", value: stats.onSale, icon: BadgePercent, href: "/admin/productos" },
+    { label: "Pedidos", value: String(d.ordersCount), icon: ShoppingBag, href: "/admin/pedidos" },
+    { label: "Pedidos nuevos", value: String(d.pending), icon: ShoppingBag, href: "/admin/pedidos" },
+    { label: "Facturado", value: formatPrice(d.revenue), icon: BadgePercent, href: "/admin/pedidos" },
+    { label: "Stock bajo", value: String(d.lowStock), icon: AlertTriangle, href: "/admin/productos" },
   ];
 
   return (
@@ -52,33 +61,50 @@ export default async function AdminDashboard() {
                 <span className="text-sm text-muted">{c.label}</span>
                 <Icon className="h-4 w-4 text-muted" />
               </div>
-              <div className="mt-2 text-3xl font-bold text-fg">{c.value}</div>
+              <div className="mt-2 text-2xl font-bold text-fg">{c.value}</div>
             </Link>
           );
         })}
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <Link
-          href="/admin/productos"
-          className="flex items-center justify-between rounded-xl border border-border bg-surface p-5 transition-colors hover:border-brand-500"
-        >
-          <div>
-            <h2 className="font-medium text-fg">Gestionar productos</h2>
-            <p className="text-sm text-muted">Agregar, editar fotos, precios y stock</p>
+      <div className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-medium text-fg">Últimos pedidos</h2>
+          <Link href="/admin/pedidos" className="text-sm text-brand-500 hover:underline">
+            Ver todos
+          </Link>
+        </div>
+
+        {d.recent.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted">
+            Todavía no hay pedidos. Cuando un cliente compre, aparecerán acá.
           </div>
-          <ArrowRight className="h-5 w-5 text-muted" />
-        </Link>
-        <Link
-          href="/admin/categorias"
-          className="flex items-center justify-between rounded-xl border border-border bg-surface p-5 transition-colors hover:border-brand-500"
-        >
-          <div>
-            <h2 className="font-medium text-fg">Gestionar categorías</h2>
-            <p className="text-sm text-muted">Crear y organizar las secciones de la tienda</p>
+        ) : (
+          <div className="overflow-hidden rounded-xl border border-border">
+            {d.recent.map((o) => {
+              const st = orderStatus(o.status);
+              return (
+                <Link
+                  key={o.id}
+                  href={`/admin/pedidos/${o.id}`}
+                  className="flex items-center justify-between border-b border-border px-4 py-3 last:border-0 hover:bg-surface"
+                >
+                  <div>
+                    <p className="font-medium text-fg">{o.orderNumber}</p>
+                    <p className="text-xs text-muted">{o.customerName}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`hidden rounded-full px-2.5 py-1 text-xs font-medium sm:inline-block ${st.className}`}>
+                      {st.label}
+                    </span>
+                    <span className="font-medium text-fg">{formatPrice(o.total)}</span>
+                    <ChevronRight className="h-4 w-4 text-muted" />
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-          <ArrowRight className="h-5 w-5 text-muted" />
-        </Link>
+        )}
       </div>
     </div>
   );
