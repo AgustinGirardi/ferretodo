@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { shippingZones } from "@/lib/cart-utils";
+import { sendOrderConfirmation } from "@/lib/email";
+import { DELIVERY_LABELS, PAYMENT_LABELS } from "@/lib/order-status";
 
 export interface CreateOrderInput {
   customer: { name: string; email: string; phone: string };
@@ -81,6 +83,24 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
       items: { create: lines },
     },
   });
+
+  // Email de confirmación (no bloquea: si falla, el pedido se crea igual).
+  try {
+    await sendOrderConfirmation({
+      orderNumber: order.orderNumber,
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      items: lines.map((l) => ({ name: l.productName, qty: l.quantity, lineTotal: l.lineTotal })),
+      subtotal,
+      shippingCost,
+      discount,
+      total,
+      deliveryLabel: DELIVERY_LABELS[order.deliveryMethod] ?? order.deliveryMethod,
+      paymentLabel: PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod,
+    });
+  } catch (e) {
+    console.error("[checkout] no se pudo enviar el email de confirmación:", e);
+  }
 
   return { ok: true, orderNumber: order.orderNumber, total: order.total };
 }
