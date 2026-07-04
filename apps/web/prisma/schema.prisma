@@ -110,6 +110,21 @@ model Order {
   @@index([status, createdAt])
 }
 
+// Solicitudes del botón de arrepentimiento (Res. 424/2020, Ley 24.240).
+model WithdrawalRequest {
+  id          String   @id @default(cuid())
+  code        String   @unique // constancia que se le da al cliente, ej. AR-2026-12345
+  orderNumber String   @default("")
+  name        String
+  email       String
+  phone       String   @default("")
+  reason      String   @default("")
+  status      String   @default("PENDING") // PENDING | RESOLVED
+  createdAt   DateTime @default(now())
+
+  @@index([status, createdAt])
+}
+
 model OrderItem {
   id          String @id @default(cuid())
   orderId     String

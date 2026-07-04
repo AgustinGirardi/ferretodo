@@ -108,3 +108,6 @@ function escape(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+/** Escape de HTML para contenido de usuario en emails. */
+export const escapeHtml = escape;

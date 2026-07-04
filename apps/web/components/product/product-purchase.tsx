@@ -8,13 +8,16 @@ import { useCart, type CartItemInput } from "@/lib/cart-store";
 interface ProductPurchaseProps {
   item: CartItemInput;
   outOfStock?: boolean;
+  /** Stock disponible: tope del selector de cantidad. */
+  maxQty?: number;
 }
 
 /**
  * Selector de cantidad + acciones de compra. Conectado al carrito local
  * (Zustand), que guarda un snapshot del producto.
  */
-export function ProductPurchase({ item, outOfStock = false }: ProductPurchaseProps) {
+export function ProductPurchase({ item, outOfStock = false, maxQty }: ProductPurchaseProps) {
+  const limit = maxQty && maxQty > 0 ? Math.min(maxQty, 999) : 999;
   const add = useCart((s) => s.add);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -48,13 +51,17 @@ export function ProductPurchase({ item, outOfStock = false }: ProductPurchasePro
           </button>
           <span className="w-10 text-center text-sm font-medium">{qty}</span>
           <button
-            onClick={() => setQty((q) => q + 1)}
-            className="flex h-10 w-10 items-center justify-center text-fg hover:bg-surface"
+            onClick={() => setQty((q) => Math.min(limit, q + 1))}
+            className="flex h-10 w-10 items-center justify-center text-fg hover:bg-surface disabled:opacity-40"
             aria-label="Sumar"
+            disabled={qty >= limit}
           >
             <Plus className="h-4 w-4" />
           </button>
         </div>
+        {qty >= limit && limit < 999 && (
+          <span className="text-xs text-muted">Máximo disponible</span>
+        )}
       </div>
 
       <Button variant="primary" size="lg" className="w-full" onClick={addToCart}>

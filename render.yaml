@@ -1,0 +1,45 @@
+# Blueprint de Render para FERRETODO.
+# En Render: New → Blueprint → conectar el repo. La base SQLite, las imágenes
+# subidas y los backups viven en el disco persistente montado en /var/data.
+services:
+  - type: web
+    name: ferretodo
+    runtime: node
+    plan: starter # el plan free no sirve: no tiene disco persistente y se duerme
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm --filter @ferretodo/web build
+    # Las migraciones corren al arrancar (el disco solo está montado en runtime).
+    startCommand: pnpm --filter @ferretodo/web exec prisma migrate deploy && pnpm --filter @ferretodo/web start
+    healthCheckPath: /
+    numInstances: 1 # SQLite en disco = una sola instancia
+    disk:
+      name: ferretodo-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/var/data/ferretodo.db
+      - key: UPLOADS_DIR
+        value: /var/data/uploads
+      - key: BACKUPS_DIR
+        value: /var/data/backups
+      - key: TZ
+        value: America/Argentina/Cordoba
+      - key: AUTH_SECRET
+        generateValue: true
+      # Completar en el dashboard de Render:
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false # ej: https://ferretodo.com.ar (o la URL .onrender.com al principio)
+      - key: ADMIN_EMAIL
+        sync: false # email del admin inicial (se crea solo en el primer arranque)
+      - key: ADMIN_PASSWORD
+        sync: false # contraseña del admin inicial (cambiarla luego desde Mi cuenta)
+      - key: RESEND_API_KEY
+        sync: false # opcional: si falta, los emails se simulan
+      - key: EMAIL_FROM
+        sync: false # ej: FERRETODO <pedidos@ferretodo.com.ar>
+      - key: STORE_EMAIL
+        sync: false # email donde el local recibe avisos de pedidos

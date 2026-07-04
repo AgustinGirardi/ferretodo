@@ -4,7 +4,7 @@ import { searchProducts } from "@/lib/products";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const q = new URL(request.url).searchParams.get("q") ?? "";
+  const q = (new URL(request.url).searchParams.get("q") ?? "").slice(0, 100);
   const results = await searchProducts(q, 6);
   return NextResponse.json(
     results.map((p) => ({

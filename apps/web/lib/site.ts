@@ -1,3 +1,6 @@
+/** URL pública del sitio (para metadata, sitemap y robots). */
+export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://ferretodo.com.ar";
+
 /** Datos del negocio FERRETODO. Fuente única para header, footer, contacto, etc. */
 export const site = {
   name: "FERRETODO",
@@ -11,6 +14,12 @@ export const site = {
     { days: "Sábados", time: "08:30–13:00" },
     { days: "Domingos", time: "Cerrado" },
   ],
+  /**
+   * URL del QR de Data Fiscal (AFIP) del comercio. Cuando el cliente tenga su
+   * formulario 960/D digital, pegar acá el link (http://qr.afip.gob.ar/?qr=...)
+   * y el logo aparece automáticamente en el footer.
+   */
+  afipQrUrl: "" as string,
 } as const;
 
 /** Link de WhatsApp con mensaje opcional pre-cargado. */

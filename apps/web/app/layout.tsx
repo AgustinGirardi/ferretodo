@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   },
   description:
     "Comprá herramientas, materiales de construcción, electricidad y plomería. Envíos en Río Cuarto y retiro en el local. Cuotas y precios para profesionales.",
-  metadataBase: new URL("https://ferretodo.com.ar"),
+  metadataBase: new URL(siteUrl),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

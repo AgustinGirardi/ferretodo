@@ -1,4 +1,4 @@
-# dependencies
+﻿# dependencies
 node_modules/
 .pnpm-store/
 
@@ -19,8 +19,9 @@ build/
 packages/db/prisma/*.db
 apps/web/prisma/*.db
 apps/web/prisma/*.db-journal
+apps/web/prisma/backups/
 
-# uploads (imágenes subidas desde el admin)
+# uploads (imÃ¡genes subidas desde el admin)
 apps/web/public/uploads/*
 !apps/web/public/uploads/.gitkeep
 

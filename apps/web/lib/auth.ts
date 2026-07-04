@@ -4,9 +4,14 @@ import { SignJWT, jwtVerify } from "jose";
 export const SESSION_COOKIE = "ft_admin";
 
 function secretKey() {
-  return new TextEncoder().encode(
-    process.env.AUTH_SECRET || "dev-secret-cambiar-en-produccion-min-32-chars",
-  );
+  const secret = process.env.AUTH_SECRET;
+  if (!secret || secret.length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("AUTH_SECRET debe estar definida (mínimo 32 caracteres) en producción.");
+    }
+    return new TextEncoder().encode("dev-secret-cambiar-en-produccion-min-32-chars");
+  }
+  return new TextEncoder().encode(secret);
 }
 
 export async function createSession(userId: string) {

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Phone, Truck, Clock, User, Menu } from "lucide-react";
+import { Phone, Truck, Clock, User } from "lucide-react";
 import { site } from "@/lib/site";
 import { getCategories, type Category } from "@/lib/products";
 import { iconMap } from "@/lib/icons";
 import { CartLink } from "./cart-link";
+import { MobileMenu } from "./mobile-menu";
 import { SearchBar } from "@/components/search/search-bar";
 
 function UtilityBar() {
@@ -24,13 +25,11 @@ function UtilityBar() {
   );
 }
 
-function MainBar() {
+function MainBar({ categories }: { categories: Category[] }) {
   return (
     <div className="border-b border-border bg-bg">
       <div className="container mx-auto flex h-16 items-center gap-3 px-4 sm:gap-5">
-        <button className="lg:hidden" aria-label="Abrir menú">
-          <Menu className="h-6 w-6 text-fg" />
-        </button>
+        <MobileMenu categories={categories} />
 
         <Link href="/" className="shrink-0 text-xl font-bold tracking-tight text-fg">
           FERRE<span className="text-brand-500">TODO</span>
@@ -79,7 +78,7 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40">
       <UtilityBar />
-      <MainBar />
+      <MainBar categories={categories} />
       <CategoryChips categories={categories} />
     </header>
   );

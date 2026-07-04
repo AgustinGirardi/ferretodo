@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
 import { CatalogFilters } from "@/components/catalog/catalog-filters";
+import { MobileFilters } from "@/components/catalog/mobile-filters";
 import { SortSelect } from "@/components/catalog/sort-select";
 import { ProductGrid } from "@/components/catalog/product-grid";
 import {
@@ -54,7 +55,7 @@ export default async function CategoryPage({
       <h1 className="mt-4 text-2xl font-bold text-fg">{category.name}</h1>
 
       <div className="mt-6 flex flex-col gap-6 lg:flex-row">
-        <aside className="lg:w-64 lg:shrink-0">
+        <aside className="hidden lg:block lg:w-64 lg:shrink-0">
           <div className="rounded-lg border border-border bg-bg p-4 lg:sticky lg:top-40">
             <CatalogFilters brands={brands} categories={categories} showCategory={false} />
           </div>
@@ -65,7 +66,10 @@ export default async function CategoryPage({
             <p className="text-sm text-muted">
               {results.length} {results.length === 1 ? "producto" : "productos"}
             </p>
-            <SortSelect />
+            <div className="flex items-center gap-2">
+              <MobileFilters brands={brands} categories={categories} showCategory={false} />
+              <SortSelect />
+            </div>
           </div>
           <ProductGrid products={results} />
         </div>

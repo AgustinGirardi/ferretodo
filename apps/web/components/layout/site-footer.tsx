@@ -77,15 +77,35 @@ export async function SiteFooter() {
       </div>
 
       <div className="border-t border-[#1e293b]">
-        <div className="container mx-auto flex flex-col items-center justify-between gap-2 px-4 py-4 text-xs text-[#64748b] sm:flex-row">
+        <div className="container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-4 text-xs text-[#64748b] sm:flex-row">
           <span>© {new Date().getFullYear()} FERRETODO · Todos los derechos reservados</span>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-4">
             <Link href="/ayuda" className="hover:text-white">
               Cómo comprar
             </Link>
-            <Link href="/arrepentimiento" className="hover:text-white">
+            <Link href="/terminos" className="hover:text-white">
+              Términos y condiciones
+            </Link>
+            <Link href="/privacidad" className="hover:text-white">
+              Privacidad
+            </Link>
+            {/* La Res. 424/2020 exige este link destacado y de fácil acceso. */}
+            <Link
+              href="/arrepentimiento"
+              className="rounded-md border border-[#334155] px-2.5 py-1 font-medium text-white hover:border-brand-500 hover:text-brand-500"
+            >
               Botón de arrepentimiento
             </Link>
+            {site.afipQrUrl && (
+              <a href={site.afipQrUrl} target="_blank" rel="noreferrer" aria-label="Data Fiscal AFIP">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://www.afip.gob.ar/images/f960/DATAWEB.jpg"
+                  alt="Data Fiscal AFIP"
+                  className="h-14 w-auto rounded"
+                />
+              </a>
+            )}
           </div>
         </div>
       </div>

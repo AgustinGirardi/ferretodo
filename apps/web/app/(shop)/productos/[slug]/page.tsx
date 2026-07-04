@@ -74,7 +74,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      {/* Se escapan <, > y & para que un nombre de producto no pueda cerrar el <script> (XSS). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd)
+            .replace(/</g, "\\u003c")
+            .replace(/>/g, "\\u003e")
+            .replace(/&/g, "\\u0026"),
+        }}
+      />
 
       <Breadcrumbs
         items={[
@@ -155,7 +164,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </span>
           </div>
 
-          <ProductPurchase item={snapshot} outOfStock={product.stock === "out"} />
+          <ProductPurchase
+            item={snapshot}
+            outOfStock={product.stock === "out"}
+            maxQty={product.stockQty}
+          />
 
           <a
             href={whatsappLink(`Hola, quería consultar por: ${product.name}`)}

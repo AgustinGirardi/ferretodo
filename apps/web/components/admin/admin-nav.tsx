@@ -11,11 +11,15 @@ import {
   LayoutTemplate,
   UserCog,
   ShoppingBag,
+  BarChart3,
+  Undo2,
 } from "lucide-react";
 
 const items = [
   { href: "/admin", label: "Inicio", icon: LayoutDashboard, exact: true },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingBag, exact: false },
+  { href: "/admin/ventas", label: "Ventas", icon: BarChart3, exact: false },
+  { href: "/admin/arrepentimientos", label: "Arrepentimientos", icon: Undo2, exact: false },
   { href: "/admin/productos", label: "Productos", icon: Package, exact: false },
   { href: "/admin/categorias", label: "Categorías", icon: Tags, exact: false },
   { href: "/admin/marcas", label: "Marcas", icon: Tag, exact: false },

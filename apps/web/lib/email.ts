@@ -12,6 +12,30 @@ export interface SendResult {
  * romper el flujo de compra. Nunca lanza: el pedido se crea igual aunque el
  * email falle.
  */
+/** Email simple (avisos a la tienda, constancias). Nunca lanza. */
+export async function sendSimpleEmail(
+  to: string,
+  subject: string,
+  html: string,
+): Promise<SendResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM || "FERRETODO <onboarding@resend.dev>";
+
+  if (!apiKey) {
+    console.log(`[email] (simulado, falta RESEND_API_KEY) → ${to} · ${subject}`);
+    return { sent: false, simulated: true };
+  }
+
+  try {
+    const resend = new Resend(apiKey);
+    await resend.emails.send({ from, to, subject, html });
+    return { sent: true, simulated: false };
+  } catch (e) {
+    console.error("[email] error al enviar:", e);
+    return { sent: false, simulated: false };
+  }
+}
+
 export async function sendOrderConfirmation(data: OrderEmailData): Promise<SendResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM || "FERRETODO <onboarding@resend.dev>";
