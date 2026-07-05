@@ -74,6 +74,9 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   if (!["mercadopago", "transfer", "cash"].includes(input.payment)) {
     return { ok: false, error: "Forma de pago inválida." };
   }
+  if (isDelivery && input.payment === "cash") {
+    return { ok: false, error: "El pago en efectivo solo está disponible con retiro en el local." };
+  }
 
   if (!input.items?.length) return { ok: false, error: "El carrito está vacío." };
   if (input.items.length > MAX_ITEMS) {

@@ -56,6 +56,12 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState({ street: "", number: "" });
   const [payment, setPayment] = useState<PaymentMethod>("mercadopago");
 
+  useEffect(() => {
+    // El efectivo solo es válido con retiro en el local: si el comprador
+    // vuelve atrás y cambia a envío, se pasa a Mercado Pago automáticamente.
+    setPayment((p) => (delivery === "delivery" && p === "cash" ? "mercadopago" : p));
+  }, [delivery]);
+
   const [done, setDone] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [placedTotal, setPlacedTotal] = useState(0);
@@ -315,14 +321,20 @@ export default function CheckoutPage() {
                   desc="5% de descuento"
                   wide
                 />
-                <OptionCard
-                  active={payment === "cash"}
-                  onClick={() => setPayment("cash")}
-                  icon={<Banknote className="h-5 w-5" />}
-                  title="Efectivo"
-                  desc="Al retirar o contra entrega"
-                  wide
-                />
+                {delivery === "pickup" ? (
+                  <OptionCard
+                    active={payment === "cash"}
+                    onClick={() => setPayment("cash")}
+                    icon={<Banknote className="h-5 w-5" />}
+                    title="Efectivo"
+                    desc="Al retirar en el local"
+                    wide
+                  />
+                ) : (
+                  <p className="px-1 text-xs text-muted">
+                    El pago en efectivo solo está disponible si elegís retiro en el local.
+                  </p>
+                )}
               </div>
 
               {orderError && (
