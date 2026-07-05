@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { site } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Política de privacidad",
   description: "Cómo tratamos tus datos personales en la tienda online de FERRETODO.",

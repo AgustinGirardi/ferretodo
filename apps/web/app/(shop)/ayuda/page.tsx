@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { site, whatsappLink } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Cómo comprar",
   description: "Guía paso a paso para comprar en la tienda online de FERRETODO.",

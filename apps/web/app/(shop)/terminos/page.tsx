@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Términos y condiciones",
   description: "Términos y condiciones de compra en la tienda online de FERRETODO.",

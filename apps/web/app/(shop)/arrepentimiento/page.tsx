@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { site } from "@/lib/site";
 import { WithdrawalForm } from "@/components/legal/withdrawal-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Botón de arrepentimiento",
   description:
