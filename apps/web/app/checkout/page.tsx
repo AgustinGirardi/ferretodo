@@ -24,6 +24,9 @@ import { site } from "@/lib/site";
 type DeliveryMethod = "pickup" | "delivery";
 type PaymentMethod = "mercadopago" | "transfer" | "cash";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_DIGITS_RE = /\d/g;
+
 function MinimalHeader() {
   return (
     <header className="border-b border-border bg-bg">
@@ -64,7 +67,10 @@ export default function CheckoutPage() {
   const transferDiscount = payment === "transfer" ? Math.round(subtotal * 0.05) : 0;
   const total = subtotal + shippingCost - transferDiscount;
 
-  const step1Valid = data.name.trim() && data.email.trim() && data.phone.trim();
+  const step1Valid =
+    data.name.trim().length >= 3 &&
+    EMAIL_RE.test(data.email.trim()) &&
+    (data.phone.match(PHONE_DIGITS_RE)?.length ?? 0) >= 6;
   const step2Valid = delivery === "pickup" || (address.street.trim() && address.number.trim());
 
   async function placeOrder() {
@@ -196,6 +202,9 @@ export default function CheckoutPage() {
                     className="input"
                     placeholder="juan@email.com"
                   />
+                  {data.email.trim() && !EMAIL_RE.test(data.email.trim()) && (
+                    <span className="text-xs text-danger">Ingresá un email válido (con @ y dominio).</span>
+                  )}
                 </Field>
                 <Field label="Teléfono">
                   <input
@@ -204,6 +213,9 @@ export default function CheckoutPage() {
                     className="input"
                     placeholder="0358 ..."
                   />
+                  {data.phone.trim() && (data.phone.match(PHONE_DIGITS_RE)?.length ?? 0) < 6 && (
+                    <span className="text-xs text-danger">Ingresá un teléfono válido (mínimo 6 números).</span>
+                  )}
                 </Field>
               </div>
               <div className="flex justify-end">

@@ -49,8 +49,16 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   if (!name || !email || !phone) {
     return { ok: false, error: "Faltan datos del comprador." };
   }
-  if (name.length > 120 || phone.length > 40 || email.length > 200 || !EMAIL_RE.test(email)) {
-    return { ok: false, error: "Revisá los datos del comprador (el email no parece válido)." };
+  const phoneDigits = (phone.match(/\d/g) ?? []).length;
+  if (
+    name.length > 120 ||
+    name.trim().length < 3 ||
+    phone.length > 40 ||
+    phoneDigits < 6 ||
+    email.length > 200 ||
+    !EMAIL_RE.test(email)
+  ) {
+    return { ok: false, error: "Revisá los datos del comprador (nombre, email o teléfono no parecen válidos)." };
   }
 
   const isDelivery = input.delivery?.method === "delivery";

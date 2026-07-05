@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@ferretodo/ui";
+import { NumberInput } from "@/components/admin/number-input";
 import { saveProduct } from "@/app/admin/(panel)/productos/actions";
 
 export interface ProductFormData {
@@ -162,20 +163,20 @@ export function ProductForm({ product, categories, brands }: Props) {
       {/* Precios */}
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label="Precio (sin centavos)" required>
-          <input name="price" type="number" min="0" defaultValue={product.price} required className="input" placeholder="89999" />
+          <NumberInput name="price" defaultValue={product.price} required placeholder="89.999" />
         </Field>
         <Field label="Precio anterior (tachado)">
-          <input name="previousPrice" type="number" min="0" defaultValue={product.previousPrice} className="input" placeholder="119999" />
+          <NumberInput name="previousPrice" defaultValue={product.previousPrice} placeholder="119.999" />
         </Field>
         <Field label="Costo (privado)">
-          <input name="cost" type="number" min="0" defaultValue={product.cost} className="input" placeholder="62000" />
+          <NumberInput name="cost" defaultValue={product.cost} placeholder="62.000" />
         </Field>
       </div>
 
       {/* Stock + SKU */}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Stock disponible">
-          <input name="stockQty" type="number" min="0" defaultValue={product.stockQty} className="input" placeholder="24" />
+          <NumberInput name="stockQty" defaultValue={product.stockQty} placeholder="24" />
         </Field>
         <Field label="Código / SKU">
           <input name="sku" defaultValue={product.sku} className="input" placeholder="BOSCH-GSB13RE" />

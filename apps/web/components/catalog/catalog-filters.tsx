@@ -19,6 +19,9 @@ export function CatalogFilters({ brands, categories, showCategory = true }: Cata
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") ?? "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") ?? "");
 
+  const fmt = (digits: string) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const onlyDigits = (v: string) => v.replace(/\D/g, "");
+
   function commit(params: URLSearchParams) {
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -114,20 +117,20 @@ export function CatalogFilters({ brands, categories, showCategory = true }: Cata
         <legend className="mb-2 font-medium text-fg">Precio</legend>
         <div className="flex items-center gap-2">
           <input
-            type="number"
+            type="text"
             inputMode="numeric"
             placeholder="Mín"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
+            value={fmt(minPrice)}
+            onChange={(e) => setMinPrice(onlyDigits(e.target.value))}
             className="w-full rounded-md border border-border bg-bg px-2 py-1.5 outline-none focus:border-brand-500"
           />
           <span className="text-muted">–</span>
           <input
-            type="number"
+            type="text"
             inputMode="numeric"
             placeholder="Máx"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
+            value={fmt(maxPrice)}
+            onChange={(e) => setMaxPrice(onlyDigits(e.target.value))}
             className="w-full rounded-md border border-border bg-bg px-2 py-1.5 outline-none focus:border-brand-500"
           />
         </div>
