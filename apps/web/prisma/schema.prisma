@@ -27,6 +27,7 @@ model Customer {
   phone        String   @default("")
   passwordHash String
   createdAt    DateTime @default(now())
+  orders       Order[]
 }
 
 model Category {
@@ -114,10 +115,15 @@ model Order {
   total          Int
   notes          String?
   items          OrderItem[]
+  // Solo se setea cuando el pedido lo hace un cliente con sesión iniciada.
+  // "Mis pedidos" se muestra por esta relación, nunca por email autoafirmado.
+  customerId     String?
+  customer       Customer?   @relation(fields: [customerId], references: [id])
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
   @@index([status, createdAt])
+  @@index([customerId])
 }
 
 // Solicitudes del botón de arrepentimiento (Res. 424/2020, Ley 24.240).

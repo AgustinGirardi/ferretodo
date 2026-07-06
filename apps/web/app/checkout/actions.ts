@@ -7,6 +7,7 @@ import { sendOrderConfirmation } from "@/lib/email";
 import { DELIVERY_LABELS, PAYMENT_LABELS } from "@/lib/order-status";
 import { isRateLimited } from "@/lib/rate-limit";
 import { EMAIL_RE } from "@/lib/validation";
+import { getCustomerSession } from "@/lib/customer-auth";
 
 export interface CreateOrderInput {
   customer: { name: string; email: string; phone: string };
@@ -132,6 +133,10 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const total = subtotal + shippingCost - discount;
 
   const orderNumber = await uniqueOrderNumber();
+  // Si el comprador tiene sesión de cliente, el pedido queda vinculado a su
+  // cuenta (así "Mis pedidos" no depende del email, que no está verificado).
+  const customerSession = await getCustomerSession();
+  const customerId = customerSession?.sub ?? null;
   let order;
   try {
     // El pedido y el descuento de stock son una sola transacción: si otro
@@ -158,6 +163,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
           shippingCost,
           discount,
           total,
+          customerId,
           items: { create: lines },
         },
       });

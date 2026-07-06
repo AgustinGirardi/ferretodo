@@ -5,7 +5,8 @@ import { authSecretKey } from "./secret";
 export const SESSION_COOKIE = "ft_admin";
 
 export async function createSession(userId: string) {
-  const token = await new SignJWT({ sub: userId })
+  // typ:"admin" evita que un token de cliente (mismo secreto) valga como admin.
+  const token = await new SignJWT({ sub: userId, typ: "admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
@@ -30,6 +31,7 @@ export async function getAdminSession(): Promise<{ sub: string } | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, authSecretKey());
+    if (payload.typ !== "admin") return null;
     return { sub: String(payload.sub) };
   } catch {
     return null;

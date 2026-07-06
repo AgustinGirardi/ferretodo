@@ -40,8 +40,10 @@ export default async function AccountPage() {
     );
   }
 
+  // Por customerId (pedidos hechos con esta sesión), nunca por email: el email
+  // no está verificado, así que matchear por email filtraría pedidos ajenos.
   const orders = await prisma.order.findMany({
-    where: { customerEmail: customer.email },
+    where: { customerId: customer.id },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { items: true } } },
   });

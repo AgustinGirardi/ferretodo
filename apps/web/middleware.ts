@@ -7,8 +7,9 @@ export async function middleware(req: NextRequest) {
   let valid = false;
   if (token) {
     try {
-      await jwtVerify(token, authSecretKey());
-      valid = true;
+      const { payload } = await jwtVerify(token, authSecretKey());
+      // Solo tokens de admin: un token de cliente (mismo secreto) no vale acá.
+      valid = payload.typ === "admin";
     } catch {
       valid = false;
     }
