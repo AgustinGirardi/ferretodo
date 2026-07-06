@@ -20,11 +20,11 @@ import { createOrder } from "./actions";
 import { cartSubtotal, shippingZones } from "@/lib/cart-utils";
 import { formatPrice } from "@/lib/format";
 import { site } from "@/lib/site";
+import { EMAIL_RE } from "@/lib/validation";
 
 type DeliveryMethod = "pickup" | "delivery";
 type PaymentMethod = "mercadopago" | "transfer" | "cash";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_DIGITS_RE = /\d/g;
 
 function MinimalHeader() {

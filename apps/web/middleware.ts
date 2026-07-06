@@ -1,23 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { jwtVerify } from "jose";
-
-function secretKey() {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret || secret.length < 32) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("AUTH_SECRET debe estar definida (mínimo 32 caracteres) en producción.");
-    }
-    return new TextEncoder().encode("dev-secret-cambiar-en-produccion-min-32-chars");
-  }
-  return new TextEncoder().encode(secret);
-}
+import { authSecretKey } from "./lib/secret";
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("ft_admin")?.value;
   let valid = false;
   if (token) {
     try {
-      await jwtVerify(token, secretKey());
+      await jwtVerify(token, authSecretKey());
       valid = true;
     } catch {
       valid = false;

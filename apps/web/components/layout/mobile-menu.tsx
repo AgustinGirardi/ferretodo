@@ -7,6 +7,7 @@ import { Menu, X, Phone, HelpCircle } from "lucide-react";
 import { site, whatsappLink } from "@/lib/site";
 import { iconMap, type IconName } from "@/lib/icons";
 import { SearchBar } from "@/components/search/search-bar";
+import { ThemeToggle } from "./theme-toggle";
 
 export interface MobileMenuCategory {
   name: string;
@@ -49,9 +50,12 @@ export function MobileMenu({ categories }: { categories: MobileMenuCategory[] })
               <span className="text-lg font-bold tracking-tight text-fg">
                 FERRE<span className="text-brand-500">TODO</span>
               </span>
-              <button aria-label="Cerrar menú" onClick={() => setOpen(false)}>
-                <X className="h-5 w-5 text-fg" />
-              </button>
+              <div className="flex items-center gap-1">
+                <ThemeToggle />
+                <button aria-label="Cerrar menú" onClick={() => setOpen(false)}>
+                  <X className="h-5 w-5 text-fg" />
+                </button>
+              </div>
             </div>
 
             <div className="border-b border-border p-3 sm:hidden">

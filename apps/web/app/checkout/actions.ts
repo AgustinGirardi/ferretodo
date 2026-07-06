@@ -6,6 +6,7 @@ import { shippingZones } from "@/lib/cart-utils";
 import { sendOrderConfirmation } from "@/lib/email";
 import { DELIVERY_LABELS, PAYMENT_LABELS } from "@/lib/order-status";
 import { isRateLimited } from "@/lib/rate-limit";
+import { EMAIL_RE } from "@/lib/validation";
 
 export interface CreateOrderInput {
   customer: { name: string; email: string; phone: string };
@@ -31,7 +32,6 @@ async function uniqueOrderNumber(): Promise<string> {
   }
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DELIVERY_ZONES = ["centro", "norte", "sur", "afueras"];
 const MAX_ITEMS = 50;
 const MAX_QTY = 999;

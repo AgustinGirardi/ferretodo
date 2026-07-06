@@ -13,7 +13,10 @@ import {
   ShoppingBag,
   BarChart3,
   Undo2,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useAdminTheme } from "./admin-theme";
 
 const items = [
   { href: "/admin", label: "Inicio", icon: LayoutDashboard, exact: true },
@@ -29,6 +32,7 @@ const items = [
 
 export function AdminNav() {
   const pathname = usePathname();
+  const { dark, toggle } = useAdminTheme();
 
   return (
     <nav className="flex flex-col gap-1 p-3">
@@ -55,6 +59,15 @@ export function AdminNav() {
       >
         <Store className="h-4 w-4" /> Ver la tienda
       </Link>
+
+      <button
+        type="button"
+        onClick={toggle}
+        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-surface hover:text-fg"
+      >
+        {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        {dark ? "Tema claro" : "Tema oscuro"}
+      </button>
     </nav>
   );
 }

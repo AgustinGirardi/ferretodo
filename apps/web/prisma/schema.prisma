@@ -19,6 +19,16 @@ model AdminUser {
   createdAt    DateTime @default(now())
 }
 
+// Cuenta de cliente (compradores de la tienda, separada del admin).
+model Customer {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String   @default("")
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
 model Category {
   id        String    @id @default(cuid())
   name      String

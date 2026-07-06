@@ -15,7 +15,7 @@ export async function Hero() {
   const s = await getHomeSettings();
 
   return (
-    <section className="bg-orange-50">
+    <section className="bg-orange-50 dark:bg-surface">
       <div className="container mx-auto grid items-center gap-6 px-4 py-10 md:grid-cols-[1.3fr_1fr] md:py-14">
         <div>
           <h1 className="text-3xl font-bold leading-tight text-fg sm:text-4xl">{s.heroTitle}</h1>

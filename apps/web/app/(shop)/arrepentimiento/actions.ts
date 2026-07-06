@@ -6,14 +6,13 @@ import { isRateLimited } from "@/lib/rate-limit";
 import { sendSimpleEmail } from "@/lib/email";
 import { escapeHtml } from "@/lib/email-template";
 import { site } from "@/lib/site";
+import { isValidEmail } from "@/lib/validation";
 
 export interface WithdrawalState {
   ok?: boolean;
   code?: string;
   error?: string;
 }
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function uniqueCode(): Promise<string> {
   const year = new Date().getFullYear();
@@ -41,7 +40,7 @@ export async function createWithdrawalRequest(
   const reason = String(formData.get("reason") ?? "").trim().slice(0, 1000);
 
   if (!name || !email) return { error: "Completá tu nombre y tu email." };
-  if (!EMAIL_RE.test(email)) return { error: "El email no parece válido." };
+  if (!isValidEmail(email)) return { error: "El email no parece válido." };
 
   const code = await uniqueCode();
   await prisma.withdrawalRequest.create({

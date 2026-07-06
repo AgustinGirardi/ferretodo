@@ -30,6 +30,16 @@
   --border: #1e293b;
 }
 
+/* Declaración explícita del tema claro: permite forzar modo claro en un
+   subárbol (ej. panel admin) sin depender de heredar de un ancestro .dark. */
+.light {
+  --bg: #ffffff;
+  --surface: #f8fafc;
+  --fg: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+}
+
 body {
   background-color: var(--bg);
   color: var(--fg);

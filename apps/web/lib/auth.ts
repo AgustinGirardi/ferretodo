@@ -1,25 +1,15 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
+import { authSecretKey } from "./secret";
 
 export const SESSION_COOKIE = "ft_admin";
-
-function secretKey() {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret || secret.length < 32) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("AUTH_SECRET debe estar definida (mínimo 32 caracteres) en producción.");
-    }
-    return new TextEncoder().encode("dev-secret-cambiar-en-produccion-min-32-chars");
-  }
-  return new TextEncoder().encode(secret);
-}
 
 export async function createSession(userId: string) {
   const token = await new SignJWT({ sub: userId })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(secretKey());
+    .sign(authSecretKey());
 
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
@@ -39,7 +29,7 @@ export async function getAdminSession(): Promise<{ sub: string } | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, secretKey());
+    const { payload } = await jwtVerify(token, authSecretKey());
     return { sub: String(payload.sub) };
   } catch {
     return null;

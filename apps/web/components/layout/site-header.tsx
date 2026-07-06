@@ -5,6 +5,7 @@ import { getCategories, type Category } from "@/lib/products";
 import { iconMap } from "@/lib/icons";
 import { CartLink } from "./cart-link";
 import { MobileMenu } from "./mobile-menu";
+import { ThemeToggle } from "./theme-toggle";
 import { SearchBar } from "@/components/search/search-bar";
 
 function UtilityBar() {
@@ -37,7 +38,8 @@ function MainBar({ categories }: { categories: Category[] }) {
 
         <SearchBar className="hidden flex-1 sm:block" />
 
-        <div className="ml-auto flex items-center gap-4 sm:ml-0">
+        <div className="ml-auto flex items-center gap-2 sm:ml-0 sm:gap-4">
+          <ThemeToggle />
           <Link
             href="/cuenta"
             className="inline-flex items-center gap-1.5 text-sm text-fg hover:text-brand-600"

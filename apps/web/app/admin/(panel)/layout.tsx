@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminThemeProvider } from "@/components/admin/admin-theme";
 import { logout } from "../actions";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
@@ -12,7 +13,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const admin = await prisma.adminUser.findUnique({ where: { id: session.sub } });
 
   return (
-    <div className="dark min-h-screen bg-bg text-fg">
+    <AdminThemeProvider>
       <div className="flex">
         <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-surface md:flex">
           <div className="border-b border-border p-4">
@@ -42,6 +43,6 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <main className="flex-1 p-4 sm:p-6">{children}</main>
         </div>
       </div>
-    </div>
+    </AdminThemeProvider>
   );
 }
