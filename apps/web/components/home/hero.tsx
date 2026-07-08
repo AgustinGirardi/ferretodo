@@ -18,10 +18,14 @@ export async function Hero() {
     <section className="bg-orange-50 dark:bg-surface">
       <div className="container mx-auto grid items-center gap-6 px-4 py-10 md:grid-cols-[1.3fr_1fr] md:py-14">
         <div>
-          <h1 className="text-3xl font-bold leading-tight text-fg sm:text-4xl">{s.heroTitle}</h1>
-          <p className="mt-3 max-w-md text-base text-muted">{s.heroSubtitle}</p>
+          <h1 className="text-3xl font-bold leading-tight text-fg motion-safe:animate-fade-up sm:text-4xl">
+            {s.heroTitle}
+          </h1>
+          <p className="mt-3 max-w-md text-base text-muted motion-safe:animate-fade-up motion-safe:[animation-delay:120ms]">
+            {s.heroSubtitle}
+          </p>
 
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap gap-2 motion-safe:animate-fade-up motion-safe:[animation-delay:220ms]">
             {trustBadges.map((b) => {
               const Icon = b.icon;
               return (
@@ -35,7 +39,7 @@ export async function Hero() {
             })}
           </div>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3 motion-safe:animate-fade-up motion-safe:[animation-delay:320ms]">
             <Link href={s.heroCtaLink || "/productos"}>
               <Button variant="primary" size="lg">
                 {s.heroCtaLabel || "Ver ofertas"}
@@ -53,7 +57,7 @@ export async function Hero() {
           </div>
         </div>
 
-        <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-[#ffe7d4]">
+        <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-[#ffe7d4] motion-safe:animate-fade-up motion-safe:[animation-delay:160ms]">
           {s.heroImageUrl ? (
             <Image
               src={s.heroImageUrl}
@@ -64,7 +68,10 @@ export async function Hero() {
               priority
             />
           ) : (
-            <Wrench className="h-28 w-28 text-[#f0997b]" strokeWidth={1} />
+            <Wrench
+              className="h-28 w-28 text-[#f0997b] motion-safe:animate-float-slow"
+              strokeWidth={1}
+            />
           )}
         </div>
       </div>

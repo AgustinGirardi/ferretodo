@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { isValidEmail } from "@/lib/validation";
 import { isRateLimited } from "@/lib/rate-limit";
 import { lockedMinutes, recordFailure, clearFailures } from "@/lib/login-limit";
+import { createSession } from "@/lib/auth";
 import {
   createCustomerSession,
   destroyCustomerSession,
@@ -13,6 +14,8 @@ import {
 
 export interface AuthState {
   error?: string;
+  /** true cuando el login fue con credenciales de admin: el form redirige a /admin. */
+  admin?: boolean;
 }
 
 export async function registerCustomer(
@@ -34,7 +37,13 @@ export async function registerCustomer(
   if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
 
   const existing = await prisma.customer.findUnique({ where: { email } });
-  if (existing) return { error: "Ya existe una cuenta con ese email. Iniciá sesión." };
+  if (existing) {
+    return {
+      error: existing.passwordHash
+        ? "Ya existe una cuenta con ese email. Iniciá sesión."
+        : "Ya existe una cuenta con ese email creada con Google. Usá «Continuar con Google».",
+    };
+  }
 
   const customer = await prisma.customer.create({
     data: { name, email, phone, passwordHash: await bcrypt.hash(password, 10) },
@@ -59,8 +68,27 @@ export async function loginCustomer(
     return { error: `Demasiados intentos fallidos. Probá de nuevo en ${locked} min.` };
   }
 
+  // Si las credenciales son las del administrador, se abre sesión de admin
+  // (cookie ft_admin) y el formulario redirige al panel. Ante fallo, el error
+  // es el mismo genérico de siempre para no revelar qué emails son de admin.
+  const admin = await prisma.adminUser.findUnique({ where: { email } });
+  if (admin && (await bcrypt.compare(password, admin.passwordHash))) {
+    clearFailures(key);
+    await createSession(admin.id);
+    return { admin: true };
+  }
+
   const customer = await prisma.customer.findUnique({ where: { email } });
-  if (!customer || !(await bcrypt.compare(password, customer.passwordHash))) {
+  if (!customer || !customer.passwordHash) {
+    recordFailure(key);
+    // Sin passwordHash = cuenta creada con Google: no tiene contraseña propia.
+    return {
+      error: customer
+        ? "Esa cuenta se creó con Google. Usá «Continuar con Google»."
+        : "Email o contraseña incorrectos.",
+    };
+  }
+  if (!(await bcrypt.compare(password, customer.passwordHash))) {
     recordFailure(key);
     return { error: "Email o contraseña incorrectos." };
   }

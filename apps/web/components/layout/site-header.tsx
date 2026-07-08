@@ -3,7 +3,9 @@ import { Phone, Truck, Clock, User } from "lucide-react";
 import { site } from "@/lib/site";
 import { getCategories, type Category } from "@/lib/products";
 import { iconMap } from "@/lib/icons";
+import { AdminPanelLink } from "./admin-panel-link";
 import { CartLink } from "./cart-link";
+import { HideOnRoutes } from "./hide-on-routes";
 import { MobileMenu } from "./mobile-menu";
 import { ThemeToggle } from "./theme-toggle";
 import { SearchBar } from "@/components/search/search-bar";
@@ -39,6 +41,7 @@ function MainBar({ categories }: { categories: Category[] }) {
         <SearchBar className="hidden flex-1 sm:block" />
 
         <div className="ml-auto flex items-center gap-2 sm:ml-0 sm:gap-4">
+          <AdminPanelLink />
           <ThemeToggle />
           <Link
             href="/cuenta"
@@ -81,7 +84,10 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40">
       <UtilityBar />
       <MainBar categories={categories} />
-      <CategoryChips categories={categories} />
+      {/* En "Mi cuenta" la barra de categorías se oculta para dejar el login limpio. */}
+      <HideOnRoutes routes={["/cuenta"]}>
+        <CategoryChips categories={categories} />
+      </HideOnRoutes>
     </header>
   );
 }

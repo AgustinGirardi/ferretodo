@@ -25,7 +25,8 @@ model Customer {
   name         String
   email        String   @unique
   phone        String   @default("")
-  passwordHash String
+  passwordHash String? // null = cuenta creada con Google (sin contraseña propia)
+  googleId     String?  @unique // "sub" del id_token de Google
   createdAt    DateTime @default(now())
   orders       Order[]
 }

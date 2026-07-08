@@ -33,7 +33,7 @@ export function ProductCard({ product }: { product: Product }) {
     : 0;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-bg transition-shadow hover:shadow-md">
+    <article className="group flex w-full flex-col overflow-hidden rounded-lg border border-border bg-bg transition-all duration-300 hover:border-brand-500 hover:shadow-lg motion-safe:hover:-translate-y-1">
       <Link
         href={`/productos/${product.slug}`}
         className="relative flex aspect-square items-center justify-center overflow-hidden bg-surface"
@@ -49,10 +49,13 @@ export function ProductCard({ product }: { product: Product }) {
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, 25vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
           />
         ) : (
-          <Icon className="h-16 w-16 text-muted/40" strokeWidth={1.25} />
+          <Icon
+            className="h-16 w-16 text-muted/40 transition-transform duration-300 motion-safe:group-hover:scale-110"
+            strokeWidth={1.25}
+          />
         )}
       </Link>
 

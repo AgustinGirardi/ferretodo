@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { formatPrice } from "@/lib/format";
 import { orderStatus } from "@/lib/order-status";
+import { googleEnabled } from "@/lib/google-oauth";
 import { CustomerAuthForms } from "@/components/account/customer-auth-forms";
 import { logoutCustomer } from "./actions";
 
@@ -14,8 +15,15 @@ export const metadata: Metadata = {
   description: "Iniciá sesión o creá una cuenta para comprar en FERRETODO.",
 };
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const session = await getCustomerSession();
+  const { error } = await searchParams;
+  const oauthError =
+    error === "google" ? "No pudimos completar el ingreso con Google. Probá de nuevo." : undefined;
 
   if (!session) {
     return (
@@ -24,7 +32,7 @@ export default async function AccountPage() {
         <p className="mb-8 text-center text-sm text-muted">
           Iniciá sesión o creá una cuenta para comprar más rápido y ver tus pedidos.
         </p>
-        <CustomerAuthForms />
+        <CustomerAuthForms googleEnabled={googleEnabled()} oauthError={oauthError} />
       </div>
     );
   }
@@ -35,7 +43,7 @@ export default async function AccountPage() {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-10">
         <h1 className="mb-8 text-center text-2xl font-bold text-fg">Mi cuenta</h1>
-        <CustomerAuthForms />
+        <CustomerAuthForms googleEnabled={googleEnabled()} oauthError={oauthError} />
       </div>
     );
   }

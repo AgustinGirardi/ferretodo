@@ -43,3 +43,7 @@ services:
         sync: false # ej: FERRETODO <pedidos@ferretodo.com.ar>
       - key: STORE_EMAIL
         sync: false # email donde el local recibe avisos de pedidos
+      - key: GOOGLE_CLIENT_ID
+        sync: false # opcional: login con Google (si falta, el botón no aparece)
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false # opcional: login con Google
