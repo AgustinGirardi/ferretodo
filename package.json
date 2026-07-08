@@ -14,12 +14,10 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "db:generate": "pnpm --filter @ferretodo/db generate",
-    "db:migrate": "pnpm --filter @ferretodo/db migrate",
-    "db:seed": "pnpm --filter @ferretodo/db seed",
-    "db:studio": "pnpm --filter @ferretodo/db studio",
-    "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "db:generate": "pnpm --filter @ferretodo/web db:generate",
+    "db:migrate": "pnpm --filter @ferretodo/web db:migrate",
+    "db:seed": "pnpm --filter @ferretodo/web db:seed",
+    "db:studio": "pnpm --filter @ferretodo/web db:studio"
   },
   "devDependencies": {
     "prettier": "^3.4.2",
