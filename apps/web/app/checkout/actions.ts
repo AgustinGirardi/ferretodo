@@ -14,6 +14,10 @@ export interface CreateOrderInput {
   delivery: { method: "pickup" | "delivery"; zone?: string; address?: string };
   payment: "mercadopago" | "transfer" | "cash";
   items: { productId: string; qty: number }[];
+  /** Total que el cliente vio en pantalla. Si no coincide con el recalculado en
+   *  el server (cambió un precio), se rechaza para no cobrar un monto distinto.
+   *  Se omite en el reintento ("acepto el precio nuevo"). */
+  expectedTotal?: number;
 }
 
 export interface CreateOrderResult {
@@ -21,6 +25,8 @@ export interface CreateOrderResult {
   orderNumber?: string;
   total?: number;
   error?: string;
+  /** true cuando el rechazo fue por cambio de precio: el cliente confirma de nuevo. */
+  priceChanged?: boolean;
 }
 
 async function uniqueOrderNumber(): Promise<string> {
@@ -38,11 +44,7 @@ const MAX_ITEMS = 50;
 const MAX_QTY = 999;
 
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
-  // Máximo 5 pedidos cada 10 minutos por conexión (frena spam de pedidos/emails).
   const ip = ((await headers()).get("x-forwarded-for") ?? "local").split(",")[0]?.trim() || "local";
-  if (isRateLimited(`order:${ip}`, 5, 10 * 60_000)) {
-    return { ok: false, error: "Demasiados pedidos seguidos. Esperá unos minutos e intentá de nuevo." };
-  }
 
   const name = String(input.customer?.name ?? "").trim();
   const email = String(input.customer?.email ?? "").trim();
@@ -95,22 +97,27 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   });
   const byId = new Map(products.map((p) => [p.id, p]));
 
-  const lines = input.items
-    .map((i) => {
-      const p = byId.get(i.productId);
-      const qty = Math.min(MAX_QTY, Math.max(1, Math.round(Number(i.qty) || 1)));
-      if (!p) return null;
-      return {
-        productId: p.id,
-        productName: p.name,
-        unitPrice: p.price,
-        quantity: qty,
-        lineTotal: p.price * qty,
-      };
-    })
-    .filter((l): l is NonNullable<typeof l> => l !== null);
+  // Si algún producto del carrito ya no está disponible (dado de baja o borrado
+  // entre que se agregó y el confirm), NO se crea un pedido parcial en silencio:
+  // se rechaza para que el cliente revise y no crea que compró algo que no compró.
+  if (input.items.some((i) => !byId.has(i.productId))) {
+    return {
+      ok: false,
+      error: "Uno o más productos del carrito ya no están disponibles. Revisalo antes de confirmar.",
+    };
+  }
 
-  if (lines.length === 0) return { ok: false, error: "Los productos ya no están disponibles." };
+  const lines = input.items.map((i) => {
+    const p = byId.get(i.productId)!;
+    const qty = Math.min(MAX_QTY, Math.max(1, Math.round(Number(i.qty) || 1)));
+    return {
+      productId: p.id,
+      productName: p.name,
+      unitPrice: p.price,
+      quantity: qty,
+      lineTotal: p.price * qty,
+    };
+  });
 
   // Validación de stock con mensaje claro antes de intentar el descuento.
   for (const l of lines) {
@@ -132,11 +139,39 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   const discount = input.payment === "transfer" ? Math.round(subtotal * 0.05) : 0;
   const total = subtotal + shippingCost - discount;
 
+  // Si el total recalculado no coincide con el que el cliente vio (cambió un
+  // precio mientras compraba), se rechaza para no cobrar un monto distinto al
+  // mostrado. El cliente confirma de nuevo (sin expectedTotal) aceptando el nuevo.
+  if (typeof input.expectedTotal === "number" && input.expectedTotal !== total) {
+    return {
+      ok: false,
+      priceChanged: true,
+      total,
+      error: `Los precios se actualizaron. El nuevo total es $ ${total.toLocaleString("es-AR")}. Confirmá de nuevo para continuar.`,
+    };
+  }
+
+  // Rate limit acá (no al entrar): máximo 5 pedidos cada 10 min por conexión.
+  // Se cuenta solo el pedido que pasó todas las validaciones, así un cliente
+  // que ajusta el carrito ante errores de stock/precio no queda bloqueado.
+  if (isRateLimited(`order:${ip}`, 5, 10 * 60_000)) {
+    return { ok: false, error: "Demasiados pedidos seguidos. Esperá unos minutos e intentá de nuevo." };
+  }
+
   const orderNumber = await uniqueOrderNumber();
   // Si el comprador tiene sesión de cliente, el pedido queda vinculado a su
   // cuenta (así "Mis pedidos" no depende del email, que no está verificado).
+  // Se verifica que la cuenta siga existiendo: si la DB se restauró de un backup
+  // y la fila ya no está, se guarda sin customerId en vez de romper por la FK.
   const customerSession = await getCustomerSession();
-  const customerId = customerSession?.sub ?? null;
+  let customerId = customerSession?.sub ?? null;
+  if (customerId) {
+    const stillExists = await prisma.customer.findUnique({
+      where: { id: customerId },
+      select: { id: true },
+    });
+    if (!stillExists) customerId = null;
+  }
   let order;
   try {
     // El pedido y el descuento de stock son una sola transacción: si otro

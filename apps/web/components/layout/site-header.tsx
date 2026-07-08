@@ -3,7 +3,6 @@ import { Phone, Truck, Clock, User } from "lucide-react";
 import { site } from "@/lib/site";
 import { getCategories, type Category } from "@/lib/products";
 import { iconMap } from "@/lib/icons";
-import { AdminPanelLink } from "./admin-panel-link";
 import { CartLink } from "./cart-link";
 import { HideOnRoutes } from "./hide-on-routes";
 import { MobileMenu } from "./mobile-menu";
@@ -41,7 +40,6 @@ function MainBar({ categories }: { categories: Category[] }) {
         <SearchBar className="hidden flex-1 sm:block" />
 
         <div className="ml-auto flex items-center gap-2 sm:ml-0 sm:gap-4">
-          <AdminPanelLink />
           <ThemeToggle />
           <Link
             href="/cuenta"

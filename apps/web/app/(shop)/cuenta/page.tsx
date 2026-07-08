@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { LogOut, Package, Inbox } from "lucide-react";
+import Link from "next/link";
+import { LogOut, Package, Inbox, LayoutDashboard } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getAdminSession } from "@/lib/auth";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { formatPrice } from "@/lib/format";
 import { orderStatus } from "@/lib/order-status";
@@ -15,6 +17,32 @@ export const metadata: Metadata = {
   description: "Iniciá sesión o creá una cuenta para comprar en FERRETODO.",
 };
 
+/**
+ * Acceso al panel: solo se muestra en esta página (no en el header) y solo si
+ * hay sesión de admin válida cuyo AdminUser sigue existiendo.
+ */
+async function AdminPanelBanner() {
+  const adminSession = await getAdminSession();
+  if (!adminSession) return null;
+  const admin = await prisma.adminUser.findUnique({
+    where: { id: adminSession.sub },
+    select: { id: true },
+  });
+  if (!admin) return null;
+
+  return (
+    <div className="mx-auto mb-6 max-w-md">
+      <Link
+        href="/admin"
+        className="flex items-center justify-center gap-2 rounded-md border border-brand-500 bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500 hover:text-white dark:bg-transparent dark:text-brand-500 dark:hover:bg-brand-500 dark:hover:text-white"
+      >
+        <LayoutDashboard className="h-4 w-4" />
+        Ir al panel de administración
+      </Link>
+    </div>
+  );
+}
+
 export default async function AccountPage({
   searchParams,
 }: {
@@ -23,7 +51,11 @@ export default async function AccountPage({
   const session = await getCustomerSession();
   const { error } = await searchParams;
   const oauthError =
-    error === "google" ? "No pudimos completar el ingreso con Google. Probá de nuevo." : undefined;
+    error === "google"
+      ? "No pudimos completar el ingreso con Google. Probá de nuevo."
+      : error === "cuenta_existente"
+        ? "Ya existe una cuenta con ese email creada con contraseña. Iniciá sesión con tu contraseña y después vinculás Google."
+        : undefined;
 
   if (!session) {
     return (
@@ -32,6 +64,7 @@ export default async function AccountPage({
         <p className="mb-8 text-center text-sm text-muted">
           Iniciá sesión o creá una cuenta para comprar más rápido y ver tus pedidos.
         </p>
+        <AdminPanelBanner />
         <CustomerAuthForms googleEnabled={googleEnabled()} oauthError={oauthError} />
       </div>
     );

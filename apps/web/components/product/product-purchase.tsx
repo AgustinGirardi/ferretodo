@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus, ShoppingCart, Check, Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Minus, Plus, ShoppingCart, Check } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { useCart, type CartItemInput } from "@/lib/cart-store";
 
@@ -19,14 +20,19 @@ interface ProductPurchaseProps {
 export function ProductPurchase({ item, outOfStock = false, maxQty }: ProductPurchaseProps) {
   const limit = maxQty && maxQty > 0 ? Math.min(maxQty, 999) : 999;
   const add = useCart((s) => s.add);
+  const router = useRouter();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
-  const [fav, setFav] = useState(false);
 
   function addToCart() {
     add(item, qty);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
+  }
+
+  function buyNow() {
+    add(item, qty);
+    router.push("/checkout");
   }
 
   if (outOfStock) {
@@ -76,17 +82,9 @@ export function ProductPurchase({ item, outOfStock = false, maxQty }: ProductPur
         )}
       </Button>
 
-      <Button variant="outline" size="lg" className="w-full">
+      <Button variant="outline" size="lg" className="w-full" onClick={buyNow}>
         Comprar ahora
       </Button>
-
-      <button
-        onClick={() => setFav((f) => !f)}
-        className="inline-flex items-center justify-center gap-2 text-sm text-muted hover:text-brand-600"
-      >
-        <Heart className={`h-4 w-4 ${fav ? "fill-brand-500 text-brand-500" : ""}`} />
-        {fav ? "Guardado en favoritos" : "Agregar a favoritos"}
-      </button>
     </div>
   );
 }

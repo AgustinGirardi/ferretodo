@@ -20,6 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es-AR" suppressHydrationWarning>
       <body className={inter.variable}>
+        {/* Sin JavaScript, el efecto "aparecer al scrollear" no corre: se fuerza
+            el contenido visible para no dejar la home en blanco (SEO/accesibilidad). */}
+        <noscript>
+          <style>{`.reveal{opacity:1 !important;transform:none !important}`}</style>
+        </noscript>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

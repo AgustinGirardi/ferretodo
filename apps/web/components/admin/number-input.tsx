@@ -27,8 +27,9 @@ export function NumberInput({ name, defaultValue = "", placeholder, required }: 
         required={required}
         placeholder={placeholder}
         className="input"
+        // Máx 9 dígitos: por encima se pasa del Int de 32 bits de la base.
         value={formatThousands(digits)}
-        onChange={(e) => setDigits(e.target.value.replace(/\D/g, ""))}
+        onChange={(e) => setDigits(e.target.value.replace(/\D/g, "").slice(0, 9))}
       />
     </>
   );

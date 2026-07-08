@@ -31,11 +31,17 @@ async function uniqueSlug(base: string, ignoreId?: string): Promise<string> {
   }
 }
 
+// Tope del Int con signo de 32 bits que usa SQLite/Prisma: valores mayores
+// harían fallar el insert. Se recorta a ese máximo por seguridad (el input del
+// admin ya limita a 9 dígitos, esto es defensa en el server).
+const MAX_INT32 = 2_147_483_647;
+
 function intOrNull(v: FormDataEntryValue | null): number | null {
   const s = String(v ?? "").trim();
   if (!s) return null;
   const n = Math.round(Number(s));
-  return Number.isFinite(n) ? n : null;
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(MAX_INT32, n));
 }
 
 function parseSpecs(raw: string): string {

@@ -67,6 +67,9 @@ export default function CheckoutPage() {
   const [placedTotal, setPlacedTotal] = useState(0);
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState("");
+  // Cuando el server avisa que un precio cambió, el próximo confirm acepta el
+  // total nuevo (no se vuelve a mandar expectedTotal).
+  const [acceptNewPrice, setAcceptNewPrice] = useState(false);
 
   const subtotal = cartSubtotal(items);
   const shippingCost = delivery === "delivery" ? (shippingZones[zone]?.cost ?? 0) : 0;
@@ -91,6 +94,7 @@ export default function CheckoutPage() {
       },
       payment,
       items: items.map((i) => ({ productId: i.id, qty: i.qty })),
+      expectedTotal: acceptNewPrice ? undefined : total,
     });
     if (res.ok && res.orderNumber) {
       setOrderNumber(res.orderNumber);
@@ -98,6 +102,8 @@ export default function CheckoutPage() {
       setDone(true);
       clear();
     } else {
+      // Cambio de precio: se habilita aceptar el nuevo total en el siguiente confirm.
+      if (res.priceChanged) setAcceptNewPrice(true);
       setOrderError(res.error ?? "No se pudo registrar el pedido. Probá de nuevo.");
     }
     setPlacing(false);
