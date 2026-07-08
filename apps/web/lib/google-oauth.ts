@@ -12,6 +12,18 @@ export function googleEnabled(): boolean {
   return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 }
 
+/**
+ * URL pública base del sitio. En producción (detrás del proxy de Render) la
+ * request llega con host interno (localhost), así que los redirects NUNCA
+ * deben construirse desde request.url: se usa NEXT_PUBLIC_SITE_URL.
+ */
+export function publicBaseUrl(request: Request): string {
+  if (process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
+  }
+  return new URL(request.url).origin;
+}
+
 export function googleRedirectUri(): string {
   const base =
     process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_SITE_URL

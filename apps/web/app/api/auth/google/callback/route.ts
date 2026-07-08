@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { createCustomerSession } from "@/lib/customer-auth";
-import { exchangeGoogleCode, googleEnabled } from "@/lib/google-oauth";
+import { exchangeGoogleCode, googleEnabled, publicBaseUrl } from "@/lib/google-oauth";
 
 export const dynamic = "force-dynamic";
 
 function toAccount(request: Request, error?: string) {
-  const url = new URL("/cuenta", request.url);
+  const url = new URL("/cuenta", publicBaseUrl(request));
   if (error) url.searchParams.set("error", error);
   return NextResponse.redirect(url);
 }

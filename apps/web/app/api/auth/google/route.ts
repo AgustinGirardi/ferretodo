@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { googleAuthUrl, googleEnabled } from "@/lib/google-oauth";
+import { googleAuthUrl, googleEnabled, publicBaseUrl } from "@/lib/google-oauth";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 // a la pantalla de consentimiento de Google.
 export async function GET(request: Request) {
   if (!googleEnabled()) {
-    return NextResponse.redirect(new URL("/cuenta", request.url));
+    return NextResponse.redirect(new URL("/cuenta", publicBaseUrl(request)));
   }
 
   const state = crypto.randomUUID();
