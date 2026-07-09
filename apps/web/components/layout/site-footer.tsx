@@ -78,7 +78,14 @@ export async function SiteFooter() {
 
       <div className="border-t border-[#1e293b]">
         <div className="container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-4 text-xs text-[#64748b] sm:flex-row">
-          <span>© {new Date().getFullYear()} FERRETODO · Todos los derechos reservados</span>
+          <span>
+            © {new Date().getFullYear()} FERRETODO · Todos los derechos reservados ·{" "}
+            {/* Acceso discreto y permanente al panel: si no hay sesión de admin,
+                el middleware manda a /admin/login. */}
+            <Link href="/admin" className="hover:text-white">
+              Administración
+            </Link>
+          </span>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link href="/ayuda" className="hover:text-white">
               Cómo comprar
