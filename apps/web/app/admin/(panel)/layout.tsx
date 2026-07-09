@@ -4,6 +4,7 @@ import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminThemeProvider } from "@/components/admin/admin-theme";
+import { LogoMark } from "@/components/layout/logo-mark";
 import { logout } from "../actions";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
@@ -17,8 +18,11 @@ export default async function PanelLayout({ children }: { children: React.ReactN
       <div className="flex">
         <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-surface md:flex">
           <div className="border-b border-border p-4">
-            <span className="text-lg font-bold tracking-tight text-fg">
-              FERRE<span className="text-brand-500">TODO</span>
+            <span className="flex items-center gap-2 text-lg font-bold tracking-tight text-fg">
+              <LogoMark className="h-6 w-6" />
+              <span>
+                FERRE<span className="text-brand-500">TODO</span>
+              </span>
             </span>
             <p className="text-xs text-muted">Administración</p>
           </div>

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Lock } from "lucide-react";
 import { Button } from "@ferretodo/ui";
+import { LogoMark } from "@/components/layout/logo-mark";
 import { login, type LoginState } from "../actions";
 
 export default function AdminLoginPage() {
@@ -12,8 +13,11 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-bg p-8 shadow-lg">
         <div className="mb-6 text-center">
-          <span className="text-2xl font-bold tracking-tight text-fg">
-            FERRE<span className="text-brand-500">TODO</span>
+          <span className="flex items-center justify-center gap-2 text-2xl font-bold tracking-tight text-fg">
+            <LogoMark className="h-8 w-8" />
+            <span>
+              FERRE<span className="text-brand-500">TODO</span>
+            </span>
           </span>
           <p className="mt-1 text-sm text-muted">Panel de administración</p>
         </div>

@@ -15,6 +15,7 @@ import {
   PartyPopper,
 } from "lucide-react";
 import { Button } from "@ferretodo/ui";
+import { LogoMark } from "@/components/layout/logo-mark";
 import { useCart } from "@/lib/cart-store";
 import { createOrder } from "./actions";
 import { cartSubtotal, shippingZones } from "@/lib/cart-utils";
@@ -31,8 +32,11 @@ function MinimalHeader() {
   return (
     <header className="border-b border-border bg-bg">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="text-xl font-bold tracking-tight text-fg">
-          FERRE<span className="text-brand-500">TODO</span>
+        <Link href="/" className="flex items-center gap-2 text-xl font-bold tracking-tight text-fg">
+          <LogoMark className="h-7 w-7" />
+          <span>
+            FERRE<span className="text-brand-500">TODO</span>
+          </span>
         </Link>
         <span className="inline-flex items-center gap-1.5 text-sm text-muted">
           <Lock className="h-4 w-4" /> Compra segura

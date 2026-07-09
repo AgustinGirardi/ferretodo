@@ -7,6 +7,7 @@ import { Menu, X, Phone, HelpCircle } from "lucide-react";
 import { site, whatsappLink } from "@/lib/site";
 import { iconMap, type IconName } from "@/lib/icons";
 import { SearchBar } from "@/components/search/search-bar";
+import { LogoMark } from "./logo-mark";
 import { ThemeToggle } from "./theme-toggle";
 
 export interface MobileMenuCategory {
@@ -47,8 +48,11 @@ export function MobileMenu({ categories }: { categories: MobileMenuCategory[] })
           />
           <div className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-bg shadow-xl">
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <span className="text-lg font-bold tracking-tight text-fg">
-                FERRE<span className="text-brand-500">TODO</span>
+              <span className="flex items-center gap-2 text-lg font-bold tracking-tight text-fg">
+                <LogoMark className="h-6 w-6" />
+                <span>
+                  FERRE<span className="text-brand-500">TODO</span>
+                </span>
               </span>
               <div className="flex items-center gap-1">
                 <ThemeToggle />

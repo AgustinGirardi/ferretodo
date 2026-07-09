@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Phone, MapPin, Clock, Mail } from "lucide-react";
 import { site } from "@/lib/site";
 import { getCategories } from "@/lib/products";
+import { LogoMark } from "./logo-mark";
 
 export async function SiteFooter() {
   const categories = await getCategories();
@@ -9,8 +10,11 @@ export async function SiteFooter() {
     <footer className="bg-[#0f172a] text-[#cbd5e1]">
       <div className="container mx-auto grid gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <span className="text-xl font-bold text-white">
-            FERRE<span className="text-brand-500">TODO</span>
+          <span className="flex items-center gap-2 text-xl font-bold text-white">
+            <LogoMark className="h-6 w-6" />
+            <span>
+              FERRE<span className="text-brand-500">TODO</span>
+            </span>
           </span>
           <p className="mt-3 text-sm text-[#94a3b8]">
             {site.tagline} en {site.city}, Córdoba. Todo para tu obra, con envío y retiro en el

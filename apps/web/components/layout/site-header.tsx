@@ -5,6 +5,7 @@ import { getCategories, type Category } from "@/lib/products";
 import { iconMap } from "@/lib/icons";
 import { CartLink } from "./cart-link";
 import { HideOnRoutes } from "./hide-on-routes";
+import { LogoMark } from "./logo-mark";
 import { MobileMenu } from "./mobile-menu";
 import { ThemeToggle } from "./theme-toggle";
 import { SearchBar } from "@/components/search/search-bar";
@@ -33,8 +34,11 @@ function MainBar({ categories }: { categories: Category[] }) {
       <div className="container mx-auto flex h-16 items-center gap-3 px-4 sm:gap-5">
         <MobileMenu categories={categories} />
 
-        <Link href="/" className="shrink-0 text-xl font-bold tracking-tight text-fg">
-          FERRE<span className="text-brand-500">TODO</span>
+        <Link href="/" className="flex shrink-0 items-center gap-2 text-xl font-bold tracking-tight text-fg">
+          <LogoMark className="h-7 w-7" />
+          <span>
+            FERRE<span className="text-brand-500">TODO</span>
+          </span>
         </Link>
 
         <SearchBar className="hidden flex-1 sm:block" />
