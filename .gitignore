@@ -20,6 +20,7 @@ packages/db/prisma/*.db
 apps/web/prisma/*.db
 apps/web/prisma/*.db-journal
 apps/web/prisma/backups/
+apps/web/prisma/simulated-ids.json
 
 # uploads (imÃ¡genes subidas desde el admin)
 apps/web/public/uploads/*
