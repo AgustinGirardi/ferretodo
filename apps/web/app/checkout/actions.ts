@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { clientIp } from "@/lib/client-ip";
 import { shippingZones } from "@/lib/cart-utils";
@@ -29,14 +30,30 @@ export interface CreateOrderResult {
   priceChanged?: boolean;
 }
 
-async function uniqueOrderNumber(): Promise<string> {
+/**
+ * Número visible del pedido. Consultar primero y crear después no alcanza: entre
+ * las dos operaciones otro pedido simultáneo puede tomar el mismo número y la
+ * creación revienta contra el índice único. El chequeo evita la mayoría de los
+ * choques; la garantía real es el reintento de la transacción (ver más abajo).
+ */
+async function candidateOrderNumber(): Promise<string> {
   const year = new Date().getFullYear();
-  while (true) {
+  for (let i = 0; i < 10; i++) {
     const n = Math.floor(10000 + Math.random() * 90000);
     const candidate = `FT-${year}-${n}`;
     const existing = await prisma.order.findUnique({ where: { orderNumber: candidate } });
     if (!existing) return candidate;
   }
+  // Todos los candidatos estaban tomados (el año se llenó): se agrega sufijo.
+  return `FT-${year}-${Math.floor(10000 + Math.random() * 90000)}-${Date.now() % 1000}`;
+}
+
+/** true si el error es "ya existe un pedido con ese orderNumber". */
+function isOrderNumberClash(e: unknown): boolean {
+  if (!(e instanceof Prisma.PrismaClientKnownRequestError) || e.code !== "P2002") return false;
+  const target = e.meta?.target;
+  const fields = Array.isArray(target) ? target.join(",") : String(target ?? "");
+  return fields.includes("orderNumber");
 }
 
 const DELIVERY_ZONES = ["centro", "norte", "sur", "afueras"];
@@ -158,58 +175,60 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
     return { ok: false, error: "Demasiados pedidos seguidos. Esperá unos minutos e intentá de nuevo." };
   }
 
-  const orderNumber = await uniqueOrderNumber();
   // Si el comprador tiene sesión de cliente, el pedido queda vinculado a su
-  // cuenta (así "Mis pedidos" no depende del email, que no está verificado).
-  // Se verifica que la cuenta siga existiendo: si la DB se restauró de un backup
-  // y la fila ya no está, se guarda sin customerId en vez de romper por la FK.
+  // cuenta (así "Mis pedidos" no depende del email autoafirmado). getCustomerSession
+  // ya comprueba contra la base que la cuenta siga existiendo, así que si la DB se
+  // restauró de un backup y la fila no está, devuelve null y el pedido se guarda
+  // sin customerId en vez de romper por la clave foránea.
   const customerSession = await getCustomerSession();
-  let customerId = customerSession?.sub ?? null;
-  if (customerId) {
-    const stillExists = await prisma.customer.findUnique({
-      where: { id: customerId },
-      select: { id: true },
-    });
-    if (!stillExists) customerId = null;
-  }
+  const customerId = customerSession?.sub ?? null;
   let order;
-  try {
-    // El pedido y el descuento de stock son una sola transacción: si otro
-    // pedido simultáneo se llevó el stock, se revierte todo.
-    order = await prisma.$transaction(async (tx) => {
-      for (const l of lines) {
-        const res = await tx.product.updateMany({
-          where: { id: l.productId, stockQty: { gte: l.quantity } },
-          data: { stockQty: { decrement: l.quantity } },
+  // Si dos pedidos simultáneos sacan el mismo número, el índice único hace fallar
+  // a uno de los dos. La transacción ya revirtió el descuento de stock, así que
+  // reintentar con otro número es seguro: antes ese comprador veía "no pudimos
+  // registrar el pedido" por un choque de números que no tenía nada que ver con él.
+  for (let attempt = 0; ; attempt++) {
+    const orderNumber = await candidateOrderNumber();
+    try {
+      // El pedido y el descuento de stock son una sola transacción: si otro
+      // pedido simultáneo se llevó el stock, se revierte todo.
+      order = await prisma.$transaction(async (tx) => {
+        for (const l of lines) {
+          const res = await tx.product.updateMany({
+            where: { id: l.productId, stockQty: { gte: l.quantity } },
+            data: { stockQty: { decrement: l.quantity } },
+          });
+          if (res.count === 0) throw new Error(`SIN_STOCK:${l.productName}`);
+        }
+        return tx.order.create({
+          data: {
+            orderNumber,
+            customerName: name,
+            customerEmail: email,
+            customerPhone: phone,
+            deliveryMethod: input.delivery.method,
+            zone: isDelivery ? zone : null,
+            address: isDelivery ? address : null,
+            paymentMethod: input.payment,
+            subtotal,
+            shippingCost,
+            discount,
+            total,
+            customerId,
+            items: { create: lines },
+          },
         });
-        if (res.count === 0) throw new Error(`SIN_STOCK:${l.productName}`);
-      }
-      return tx.order.create({
-        data: {
-          orderNumber,
-          customerName: name,
-          customerEmail: email,
-          customerPhone: phone,
-          deliveryMethod: input.delivery.method,
-          zone: isDelivery ? zone : null,
-          address: isDelivery ? address : null,
-          paymentMethod: input.payment,
-          subtotal,
-          shippingCost,
-          discount,
-          total,
-          customerId,
-          items: { create: lines },
-        },
       });
-    });
-  } catch (e) {
-    if (e instanceof Error && e.message.startsWith("SIN_STOCK:")) {
-      const productName = e.message.slice("SIN_STOCK:".length);
-      return { ok: false, error: `"${productName}" se quedó sin stock justo ahora. Revisá el carrito.` };
+      break;
+    } catch (e) {
+      if (isOrderNumberClash(e) && attempt < 4) continue;
+      if (e instanceof Error && e.message.startsWith("SIN_STOCK:")) {
+        const productName = e.message.slice("SIN_STOCK:".length);
+        return { ok: false, error: `"${productName}" se quedó sin stock justo ahora. Revisá el carrito.` };
+      }
+      console.error("[checkout] no se pudo registrar el pedido:", e);
+      return { ok: false, error: "No pudimos registrar el pedido. Probá de nuevo en unos minutos." };
     }
-    console.error("[checkout] no se pudo registrar el pedido:", e);
-    return { ok: false, error: "No pudimos registrar el pedido. Probá de nuevo en unos minutos." };
   }
 
   // Email de confirmación (no bloquea: si falla, el pedido se crea igual).

@@ -35,25 +35,35 @@ export async function GET(request: Request) {
     if (!customer) {
       const byEmail = await prisma.customer.findUnique({ where: { email: profile.email } });
       if (byEmail) {
-        // Ya existe una cuenta con ese email. Si tiene contraseña propia NO se
-        // vincula en silencio: el registro con contraseña no verifica el email,
-        // así que esa fila pudo crearla un tercero. Vincular Google le daría a
-        // ese tercero acceso permanente a la cuenta. Se exige iniciar sesión con
-        // la contraseña primero (prueba de titularidad de la cuenta local).
-        if (byEmail.passwordHash) return toAccount(request, "cuenta_existente");
-        // Cuenta sin contraseña (creada con Google pero sin googleId aún): vincular.
+        // Ya existe una cuenta con ese email. Si tiene contraseña propia y el
+        // email NUNCA fue confirmado, no se vincula en silencio: esa fila la pudo
+        // crear un tercero con el email de otra persona, y vincular Google le
+        // daría acceso permanente. Se exige iniciar sesión con la contraseña
+        // primero (prueba de titularidad de la cuenta local).
+        // Si el email sí está confirmado, el dueño de la casilla es quien creó la
+        // cuenta y Google acaba de verificar esa misma casilla: es la misma
+        // persona, y vincular es seguro.
+        if (byEmail.passwordHash && !byEmail.emailVerifiedAt) {
+          return toAccount(request, "cuenta_existente");
+        }
+        // Google ya verificó el email, así que la cuenta queda verificada también.
         customer = await prisma.customer.update({
           where: { id: byEmail.id },
-          data: { googleId: profile.sub },
+          data: { googleId: profile.sub, emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date() },
         });
       } else {
         customer = await prisma.customer.create({
-          data: { name: profile.name, email: profile.email, googleId: profile.sub },
+          data: {
+            name: profile.name,
+            email: profile.email,
+            googleId: profile.sub,
+            emailVerifiedAt: new Date(),
+          },
         });
       }
     }
 
-    await createCustomerSession(customer.id);
+    await createCustomerSession(customer.id, customer.passwordHash);
     return toAccount(request);
   } catch (e) {
     // Falla de red con Google, carrera de creación (P2002), etc: redirect con

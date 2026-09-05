@@ -30,7 +30,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   }
 
   clearFailures(email, ip);
-  await createSession(user.id);
+  await createSession(user.id, user.passwordHash);
   redirect("/admin");
 }
 

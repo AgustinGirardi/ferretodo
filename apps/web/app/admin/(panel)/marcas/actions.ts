@@ -50,8 +50,12 @@ export async function saveBrand(formData: FormData) {
 export async function deleteBrand(id: string) {
   await requireAdmin();
   // Los productos de esta marca quedan "Sin marca" (no se borran ni se rompe nada).
-  await prisma.product.updateMany({ where: { brandId: id }, data: { brandId: null } });
-  await prisma.brand.delete({ where: { id } });
+  // Las dos operaciones van en una transacción: si el delete falla (o el proceso
+  // se cae en el medio), los productos no quedan huérfanos de marca para siempre.
+  await prisma.$transaction([
+    prisma.product.updateMany({ where: { brandId: id }, data: { brandId: null } }),
+    prisma.brand.delete({ where: { id } }),
+  ]);
   revalidatePath("/admin/marcas");
   revalidatePath("/");
   revalidatePath("/productos/[slug]", "page");

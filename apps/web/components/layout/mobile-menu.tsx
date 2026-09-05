@@ -32,6 +32,17 @@ export function MobileMenu({ categories }: { categories: MobileMenuCategory[] })
     };
   }, [open]);
 
+  // Escape cierra el menú: es lo que espera cualquiera que navegue con teclado,
+  // y sin esto la única salida era encontrar la X con el mouse.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <>
       <button className="lg:hidden" aria-label="Abrir menú" onClick={() => setOpen(true)}>
@@ -45,7 +56,12 @@ export function MobileMenu({ categories }: { categories: MobileMenuCategory[] })
             aria-label="Cerrar menú"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-bg shadow-xl">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menú"
+            className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-bg shadow-xl"
+          >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <span className="flex items-center gap-2 text-lg font-bold tracking-tight text-fg">
                 <LogoMark className="h-6 w-6" />

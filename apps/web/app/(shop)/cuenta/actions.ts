@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -11,7 +12,9 @@ import { createSession } from "@/lib/auth";
 import {
   createCustomerSession,
   destroyCustomerSession,
+  getCustomerSession,
 } from "@/lib/customer-auth";
+import { sendVerificationEmail } from "@/lib/email-verification";
 
 export interface AuthState {
   error?: string;
@@ -54,7 +57,15 @@ export async function registerCustomer(
     throw e;
   }
 
-  await createCustomerSession(customer.id);
+  // El link de confirmación no bloquea el registro: si el envío falla, la cuenta
+  // ya existe y el link se puede volver a pedir desde "Mi cuenta".
+  try {
+    await sendVerificationEmail(customer.id, customer.email, customer.name);
+  } catch (e) {
+    console.error("[cuenta] no se pudo enviar el email de verificación:", e);
+  }
+
+  await createCustomerSession(customer.id, customer.passwordHash);
   return {};
 }
 
@@ -89,7 +100,7 @@ export async function loginCustomer(
   if (admin) {
     if (await bcrypt.compare(password, admin.passwordHash)) {
       clearFailures(email, ip);
-      await createSession(admin.id);
+      await createSession(admin.id, admin.passwordHash);
       return { admin: true };
     }
     recordFailure(email, ip);
@@ -105,10 +116,36 @@ export async function loginCustomer(
   }
 
   clearFailures(customerKey, ip);
-  await createCustomerSession(customer.id);
+  await createCustomerSession(customer.id, customer.passwordHash);
   return {};
 }
 
 export async function logoutCustomer() {
   await destroyCustomerSession();
+}
+
+/** Vuelve a mandar el link de confirmación al email de la cuenta abierta. */
+export async function resendVerification() {
+  const session = await getCustomerSession();
+  if (!session) redirect("/cuenta");
+
+  const ip = await clientIp();
+  // Tope por cuenta y por conexión: el link va a un email que no controlamos,
+  // así que sin freno el formulario sirve para bombardear una casilla ajena.
+  if (
+    isRateLimited(`verify:${session.sub}`, 3, 60 * 60_000) ||
+    isRateLimited(`verify:${ip}`, 10, 60 * 60_000)
+  ) {
+    redirect("/cuenta?error=reenvio");
+  }
+
+  const customer = await prisma.customer.findUnique({ where: { id: session.sub } });
+  if (customer && !customer.emailVerifiedAt) {
+    try {
+      await sendVerificationEmail(customer.id, customer.email, customer.name);
+    } catch (e) {
+      console.error("[cuenta] no se pudo reenviar el email de verificación:", e);
+    }
+  }
+  redirect("/cuenta?reenviado=1");
 }

@@ -1,11 +1,15 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import { authSecretKey } from "./secret";
+import { prisma } from "./prisma";
+import { sessionVersion } from "./session-version";
 
 export const CUSTOMER_SESSION_COOKIE = "ft_customer";
 
-export async function createCustomerSession(customerId: string) {
-  const token = await new SignJWT({ sub: customerId, typ: "customer" })
+export async function createCustomerSession(customerId: string, passwordHash: string | null) {
+  // pv ata el token a la contraseña vigente (ver lib/session-version.ts). Las
+  // cuentas de Google no tienen contraseña propia: ahí la huella es la del vacío.
+  const token = await new SignJWT({ sub: customerId, typ: "customer", pv: sessionVersion(passwordHash) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
@@ -31,7 +35,13 @@ export async function getCustomerSession(): Promise<{ sub: string } | null> {
   try {
     const { payload } = await jwtVerify(token, authSecretKey());
     if (payload.typ !== "customer") return null;
-    return { sub: String(payload.sub) };
+    const sub = String(payload.sub);
+    const customer = await prisma.customer.findUnique({
+      where: { id: sub },
+      select: { passwordHash: true },
+    });
+    if (!customer || payload.pv !== sessionVersion(customer.passwordHash)) return null;
+    return { sub };
   } catch {
     return null;
   }

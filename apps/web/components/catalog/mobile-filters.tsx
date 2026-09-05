@@ -27,6 +27,17 @@ export function MobileFilters({
     };
   }, [open]);
 
+  // Escape cierra el panel: es lo que espera cualquiera que navegue con teclado,
+  // y sin esto la única salida era encontrar la X con el mouse.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   return (
     <>
       <button
@@ -43,7 +54,12 @@ export function MobileFilters({
             aria-label="Cerrar filtros"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute inset-y-0 right-0 flex w-80 max-w-[85vw] flex-col bg-bg shadow-xl">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filtros"
+            className="absolute inset-y-0 right-0 flex w-80 max-w-[85vw] flex-col bg-bg shadow-xl"
+          >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <span className="font-medium text-fg">Filtros</span>
               <button aria-label="Cerrar filtros" onClick={() => setOpen(false)}>
