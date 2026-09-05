@@ -39,4 +39,6 @@ export async function updateOrderStatus(id: string, status: string) {
 
   revalidatePath("/admin/pedidos");
   revalidatePath(`/admin/pedidos/${id}`);
+  // Cancelar repone stock: la ficha pública tiene que reflejarlo.
+  revalidatePath("/productos/[slug]", "page");
 }

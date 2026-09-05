@@ -78,7 +78,7 @@ export function SearchBar({ className = "" }: { className?: string }) {
         />
         <button
           type="submit"
-          className="flex shrink-0 items-center justify-center self-stretch px-4 text-white bg-brand-500 transition-colors hover:bg-brand-600"
+          className="flex shrink-0 items-center justify-center self-stretch px-4 text-white bg-brand-cta transition-colors hover:bg-brand-cta-hover"
           aria-label="Buscar"
         >
           <Search className="h-5 w-5 shrink-0" />

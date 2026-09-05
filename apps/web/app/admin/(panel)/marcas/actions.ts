@@ -43,6 +43,8 @@ export async function saveBrand(formData: FormData) {
     await prisma.brand.create({ data: { name, slug: await uniqueSlug(slugify(name)) } });
   }
   revalidatePath("/admin/marcas");
+  revalidatePath("/");
+  revalidatePath("/productos/[slug]", "page");
 }
 
 export async function deleteBrand(id: string) {
@@ -51,4 +53,6 @@ export async function deleteBrand(id: string) {
   await prisma.product.updateMany({ where: { brandId: id }, data: { brandId: null } });
   await prisma.brand.delete({ where: { id } });
   revalidatePath("/admin/marcas");
+  revalidatePath("/");
+  revalidatePath("/productos/[slug]", "page");
 }

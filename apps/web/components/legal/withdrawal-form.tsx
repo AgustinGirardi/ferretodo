@@ -61,7 +61,7 @@ export function WithdrawalForm() {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-cta px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-cta-hover disabled:opacity-60"
       >
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         Enviar solicitud de arrepentimiento

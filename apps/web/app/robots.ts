@@ -6,7 +6,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/api", "/checkout", "/carrito", "/uploads"],
+      // /uploads NO se bloquea: ahí vive cada foto de producto y para un
+      // comercio local la búsqueda por imagen es tráfico gratis.
+      disallow: ["/admin", "/api", "/checkout", "/carrito"],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
   };

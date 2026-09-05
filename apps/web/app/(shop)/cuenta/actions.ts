@@ -1,9 +1,9 @@
 "use server";
 
-import { headers } from "next/headers";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { clientIp } from "@/lib/client-ip";
 import { isValidEmail } from "@/lib/validation";
 import { isRateLimited } from "@/lib/rate-limit";
 import { lockedMinutes, recordFailure, clearFailures } from "@/lib/login-limit";
@@ -23,7 +23,7 @@ export async function registerCustomer(
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
-  const ip = ((await headers()).get("x-forwarded-for") ?? "local").split(",")[0]?.trim() || "local";
+  const ip = await clientIp();
   if (isRateLimited(`register:${ip}`, 5, 60 * 60_000)) {
     return { error: "Demasiados intentos. Probá de nuevo más tarde." };
   }
@@ -64,7 +64,7 @@ export async function loginCustomer(
 ): Promise<AuthState> {
   // Tope por IP (frena credential stuffing horizontal: una contraseña contra
   // muchos emails). El lockout por cuenta de abajo frena el brute force vertical.
-  const ip = ((await headers()).get("x-forwarded-for") ?? "local").split(",")[0]?.trim() || "local";
+  const ip = await clientIp();
   if (isRateLimited(`login:${ip}`, 20, 15 * 60_000)) {
     return { error: "Demasiados intentos. Probá de nuevo más tarde." };
   }
@@ -78,7 +78,7 @@ export async function loginCustomer(
   // /admin/login) para no duplicar el umbral de bloqueo de la cuenta admin; la
   // de cliente va bajo `customer:${email}`.
   const customerKey = `customer:${email}`;
-  const locked = Math.max(lockedMinutes(email), lockedMinutes(customerKey));
+  const locked = Math.max(lockedMinutes(email, ip), lockedMinutes(customerKey, ip));
   if (locked > 0) {
     return { error: `Demasiados intentos fallidos. Probá de nuevo en ${locked} min.` };
   }
@@ -88,11 +88,11 @@ export async function loginCustomer(
   const admin = await prisma.adminUser.findUnique({ where: { email } });
   if (admin) {
     if (await bcrypt.compare(password, admin.passwordHash)) {
-      clearFailures(email);
+      clearFailures(email, ip);
       await createSession(admin.id);
       return { admin: true };
     }
-    recordFailure(email);
+    recordFailure(email, ip);
     return { error: "Email o contraseña incorrectos." };
   }
 
@@ -100,11 +100,11 @@ export async function loginCustomer(
   // una cuenta creada con Google sin contraseña).
   const customer = await prisma.customer.findUnique({ where: { email } });
   if (!customer || !customer.passwordHash || !(await bcrypt.compare(password, customer.passwordHash))) {
-    recordFailure(customerKey);
+    recordFailure(customerKey, ip);
     return { error: "Email o contraseña incorrectos." };
   }
 
-  clearFailures(customerKey);
+  clearFailures(customerKey, ip);
   await createCustomerSession(customer.id);
   return {};
 }

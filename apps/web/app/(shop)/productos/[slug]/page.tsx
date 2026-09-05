@@ -4,16 +4,18 @@ import Image from "next/image";
 import { Truck, Store, MessageCircle, BadgePercent, Users } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
-import { ProductGallery } from "@/components/product/product-gallery";
-import { RatingStars } from "@/components/product/rating-stars";
+import { ProductImagePlaceholder } from "@/components/product/product-placeholder";
 import { ProductPurchase } from "@/components/product/product-purchase";
 import { ProductTabs } from "@/components/product/product-tabs";
 import { ProductSection } from "@/components/home/product-section";
 import { getProductBySlug, getRelated } from "@/lib/products";
 import { formatPrice } from "@/lib/format";
-import { whatsappLink } from "@/lib/site";
+import { site, whatsappLink } from "@/lib/site";
 
-export const dynamic = "force-dynamic";
+// Se cachea 60 s en vez de renderizar de cero en cada visita. Las acciones del
+// panel llaman a revalidatePath, así que un cambio de precio o stock se ve al
+// instante, no cuando vence el minuto.
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -26,7 +28,14 @@ export async function generateMetadata({
   return {
     title: product.name,
     description: product.shortDescription,
-    openGraph: { title: product.name, description: product.shortDescription, type: "website" },
+    openGraph: {
+      title: `${product.name} — ${formatPrice(product.price)}`,
+      description: product.shortDescription,
+      type: "website",
+      url: `/productos/${product.slug}`,
+      // La foto del producto si la tiene; si no, la imagen genérica de la tienda.
+      images: [{ url: product.imageUrl || "/og.png" }],
+    },
   };
 }
 
@@ -39,7 +48,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const discount = product.previousPrice
     ? Math.round((1 - product.price / product.previousPrice) * 100)
     : 0;
-  const installment = Math.round(product.price / 12);
+  const installment = Math.round(product.price / site.installments.count);
 
   const snapshot = {
     id: product.id,
@@ -49,6 +58,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     price: product.price,
     iconName: product.iconName,
     imageUrl: product.imageUrl,
+    maxQty: product.stockQty,
   };
 
   const jsonLd = {
@@ -58,11 +68,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     sku: product.sku,
     brand: { "@type": "Brand", name: product.brand },
     description: product.shortDescription,
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: product.rating,
-      reviewCount: product.reviewCount,
-    },
+    // Sin aggregateRating: no hay opiniones reales todavía. Publicar marcado de
+    // reseñas inventadas expone a una acción manual sobre todo el dominio.
     offers: {
       "@type": "Offer",
       priceCurrency: "ARS",
@@ -103,21 +110,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               alt={product.name}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
+              className="object-contain p-6"
               priority
             />
           </div>
         ) : (
-          <ProductGallery iconName={product.iconName} alt={product.name} />
+          <ProductImagePlaceholder iconName={product.iconName} alt={product.name} />
         )}
 
         <div className="flex min-w-0 flex-col gap-4">
           <div>
             <span className="text-sm text-muted">{product.brand}</span>
             <h1 className="text-2xl font-bold text-fg">{product.name}</h1>
-            <div className="mt-2">
-              <RatingStars rating={product.rating} count={product.reviewCount} />
-            </div>
           </div>
 
           <div className="border-y border-border py-4">
@@ -135,7 +139,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             )}
             <div className="text-3xl font-bold text-fg">{formatPrice(product.price)}</div>
             <p className="mt-1 text-sm font-medium text-success">
-              12 cuotas de {formatPrice(installment)} sin interés
+              {site.installments.count} cuotas de {formatPrice(installment)} sin interés
             </p>
           </div>
 
@@ -190,12 +194,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <div className="mt-10">
-        <ProductTabs
-          longDescription={product.longDescription}
-          specs={product.specs}
-          rating={product.rating}
-          reviewCount={product.reviewCount}
-        />
+        <ProductTabs longDescription={product.longDescription} specs={product.specs} />
       </div>
 
       {related.length > 0 && (

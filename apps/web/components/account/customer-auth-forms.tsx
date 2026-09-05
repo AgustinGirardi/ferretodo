@@ -49,7 +49,7 @@ export function CustomerAuthForms({
           type="button"
           onClick={() => setMode("login")}
           className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-            mode === "login" ? "bg-brand-500 text-white" : "text-muted hover:text-fg"
+            mode === "login" ? "bg-brand-cta text-white" : "text-muted hover:text-fg"
           }`}
         >
           Iniciar sesión
@@ -58,7 +58,7 @@ export function CustomerAuthForms({
           type="button"
           onClick={() => setMode("register")}
           className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-            mode === "register" ? "bg-brand-500 text-white" : "text-muted hover:text-fg"
+            mode === "register" ? "bg-brand-cta text-white" : "text-muted hover:text-fg"
           }`}
         >
           Crear cuenta
@@ -131,7 +131,7 @@ function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-cta px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-cta-hover disabled:opacity-60"
       >
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         Iniciar sesión
@@ -171,7 +171,7 @@ function RegisterForm() {
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600 disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-md bg-brand-cta px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-cta-hover disabled:opacity-60"
       >
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         Crear cuenta

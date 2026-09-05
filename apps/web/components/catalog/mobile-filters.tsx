@@ -8,10 +8,16 @@ interface MobileFiltersProps {
   brands: string[];
   categories: { name: string; slug: string }[];
   showCategory?: boolean;
+  showOnSale?: boolean;
 }
 
 /** Botón "Filtros" para mobile: abre los filtros del catálogo en un drawer. */
-export function MobileFilters({ brands, categories, showCategory = true }: MobileFiltersProps) {
+export function MobileFilters({
+  brands,
+  categories,
+  showCategory = true,
+  showOnSale = true,
+}: MobileFiltersProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -46,13 +52,18 @@ export function MobileFilters({ brands, categories, showCategory = true }: Mobil
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-              <CatalogFilters brands={brands} categories={categories} showCategory={showCategory} />
+              <CatalogFilters
+                brands={brands}
+                categories={categories}
+                showCategory={showCategory}
+                showOnSale={showOnSale}
+              />
             </div>
 
             <div className="border-t border-border p-4">
               <button
                 onClick={() => setOpen(false)}
-                className="w-full rounded-md bg-brand-500 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+                className="w-full rounded-md bg-brand-cta py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-cta-hover"
               >
                 Ver resultados
               </button>

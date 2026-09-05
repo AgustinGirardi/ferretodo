@@ -63,7 +63,7 @@ export default async function AdminSalesPage({
               href={`/admin/ventas?periodo=${p.key}`}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
                 p.key === periodo
-                  ? "bg-brand-500 text-white"
+                  ? "bg-brand-cta text-white"
                   : "border border-border text-muted hover:bg-surface hover:text-fg"
               }`}
             >

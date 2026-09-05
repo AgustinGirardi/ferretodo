@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Upload, X, Loader2 } from "lucide-react";
+import { AlertCircle, Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { NumberInput } from "@/components/admin/number-input";
-import { saveProduct } from "@/app/admin/(panel)/productos/actions";
+import { saveProduct, type ProductFormState } from "@/app/admin/(panel)/productos/actions";
 
 export interface ProductFormData {
   id?: string;
@@ -48,6 +48,7 @@ interface Props {
 }
 
 export function ProductForm({ product, categories, brands }: Props) {
+  const [state, formAction, pending] = useActionState<ProductFormState, FormData>(saveProduct, {});
   const [imageUrl, setImageUrl] = useState(product.imageUrl);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -71,7 +72,7 @@ export function ProductForm({ product, categories, brands }: Props) {
   }
 
   return (
-    <form action={saveProduct} className="flex max-w-2xl flex-col gap-5">
+    <form action={formAction} className="flex max-w-2xl flex-col gap-5">
       {product.id && <input type="hidden" name="id" value={product.id} />}
       <input type="hidden" name="imageUrl" value={imageUrl} />
 
@@ -230,9 +231,15 @@ export function ProductForm({ product, categories, brands }: Props) {
         </label>
       </div>
 
+      {state.error && (
+        <p className="inline-flex items-center gap-1.5 rounded-md bg-[#fceaea] px-3 py-2 text-sm text-[#a32d2d]">
+          <AlertCircle className="h-4 w-4 shrink-0" /> {state.error}
+        </p>
+      )}
+
       <div className="flex gap-3 border-t border-border pt-5">
-        <Button type="submit" variant="primary" size="lg" disabled={uploading}>
-          Guardar producto
+        <Button type="submit" variant="primary" size="lg" disabled={uploading || pending}>
+          {pending ? "Guardando…" : "Guardar producto"}
         </Button>
         <Link href="/admin/productos">
           <Button type="button" variant="outline" size="lg">

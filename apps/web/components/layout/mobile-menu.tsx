@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Phone, HelpCircle } from "lucide-react";
+import { Menu, X, Phone, HelpCircle, BadgePercent } from "lucide-react";
 import { site, whatsappLink } from "@/lib/site";
 import { iconMap, type IconName } from "@/lib/icons";
-import { SearchBar } from "@/components/search/search-bar";
 import { LogoMark } from "./logo-mark";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -62,10 +61,6 @@ export function MobileMenu({ categories }: { categories: MobileMenuCategory[] })
               </div>
             </div>
 
-            <div className="border-b border-border p-3 sm:hidden">
-              <SearchBar />
-            </div>
-
             <nav className="flex-1 overflow-y-auto p-3">
               <p className="px-3 pb-1 text-xs font-medium uppercase text-muted">Categorías</p>
               {categories.map((cat) => {
@@ -88,6 +83,12 @@ export function MobileMenu({ categories }: { categories: MobileMenuCategory[] })
                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-fg hover:bg-surface"
               >
                 Ver todo el catálogo
+              </Link>
+              <Link
+                href="/ofertas"
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-fg hover:bg-surface"
+              >
+                <BadgePercent className="h-4 w-4 text-sale" /> Ofertas
               </Link>
               <Link
                 href="/ayuda"

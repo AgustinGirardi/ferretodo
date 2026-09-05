@@ -58,7 +58,14 @@ function parseSpecs(raw: string): string {
   return JSON.stringify(specs);
 }
 
-export async function saveProduct(formData: FormData) {
+export interface ProductFormState {
+  error?: string;
+}
+
+export async function saveProduct(
+  _prev: ProductFormState,
+  formData: FormData,
+): Promise<ProductFormState> {
   await requireAdmin();
 
   const id = String(formData.get("id") ?? "").trim();
@@ -67,10 +74,11 @@ export async function saveProduct(formData: FormData) {
   const brandId = String(formData.get("brandId") ?? "").trim();
   const price = intOrNull(formData.get("price"));
 
-  if (!name || !categoryId || price === null || price <= 0) {
-    // Validación mínima; la UI ya marca los campos requeridos.
-    return;
-  }
+  // Antes esto era un `return` pelado: el admin tocaba "Guardar producto", no
+  // pasaba nada y no había ningún mensaje que explicara por qué.
+  if (!name) return { error: "Poné un nombre al producto." };
+  if (!categoryId) return { error: "Elegí una categoría." };
+  if (price === null || price <= 0) return { error: "El precio tiene que ser mayor a cero." };
 
   const data = {
     name,
@@ -100,6 +108,10 @@ export async function saveProduct(formData: FormData) {
   }
 
   revalidatePath("/admin/productos");
+  // Las páginas públicas del producto se cachean: hay que invalidarlas o el
+  // cambio de precio o stock tarda hasta un minuto en verse en la tienda.
+  revalidatePath("/productos/[slug]", "page");
+  revalidatePath("/");
   redirect("/admin/productos");
 }
 
@@ -111,4 +123,6 @@ export async function deleteProduct(id: string) {
     data: { deletedAt: new Date(), isActive: false },
   });
   revalidatePath("/admin/productos");
+  revalidatePath("/productos/[slug]", "page");
+  revalidatePath("/");
 }

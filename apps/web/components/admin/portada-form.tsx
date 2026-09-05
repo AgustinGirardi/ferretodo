@@ -2,7 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import Image from "next/image";
-import { Upload, X, Loader2, Check, Wrench, MessageCircle } from "lucide-react";
+import { Upload, X, Loader2, Check, AlertCircle, Wrench, MessageCircle } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { savePortada, type PortadaState } from "@/app/admin/(panel)/portada/actions";
 import type { HomeSettings } from "@/lib/settings";
@@ -159,6 +159,11 @@ export function PortadaForm({ initial }: { initial: HomeSettings }) {
           {state.saved && !pending && (
             <span className="inline-flex items-center gap-1 text-sm text-success">
               <Check className="h-4 w-4" /> ¡Guardado! Ya se ve en la tienda.
+            </span>
+          )}
+          {state.error && !pending && (
+            <span className="inline-flex items-center gap-1 text-sm text-danger">
+              <AlertCircle className="h-4 w-4" /> {state.error}
             </span>
           )}
         </div>

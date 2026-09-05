@@ -20,7 +20,38 @@ export const site = {
    * y el logo aparece automáticamente en el footer.
    */
   afipQrUrl: "" as string,
+
+  /**
+   * Cuotas que se anuncian en la tienda. Estaba escrito duro en la tarjeta de
+   * producto, la ficha, el carrito y el hero: cuatro lugares para tocar cada vez
+   * que cambian las promociones bancarias. Ahora se cambia solo acá.
+   * Ojo: mientras Mercado Pago siga simulado, esto es una promesa que hay que
+   * poder sostener en el mostrador.
+   */
+  installments: {
+    count: 12,
+    label: "12 cuotas sin interés" as string,
+  },
+
+  /**
+   * Datos para pagar por transferencia. COMPLETAR con los reales del comercio:
+   * mientras `alias` y `cbu` estén vacíos, al cliente que elige transferencia se
+   * le dice que lo vamos a contactar (que es lo que pasa hoy). Apenas se cargan,
+   * aparecen en la pantalla de confirmación y en el email del pedido, y el
+   * cliente puede pagar solo.
+   */
+  bank: {
+    alias: "" as string,
+    cbu: "" as string,
+    holder: "" as string,
+    bankName: "" as string,
+  },
 } as const;
+
+/** true cuando hay datos suficientes para que el cliente transfiera sin llamar. */
+export function hasBankDetails(): boolean {
+  return Boolean(site.bank.alias || site.bank.cbu);
+}
 
 /** Link de WhatsApp con mensaje opcional pre-cargado. */
 export function whatsappLink(message?: string): string {

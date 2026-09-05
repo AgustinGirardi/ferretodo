@@ -9,7 +9,7 @@ import { ProductCard } from "@/components/product/product-card";
 import { useCart } from "@/lib/cart-store";
 import { cartSubtotal, cartWhatsappMessage } from "@/lib/cart-utils";
 import { formatPrice } from "@/lib/format";
-import { whatsappLink } from "@/lib/site";
+import { site, whatsappLink } from "@/lib/site";
 import type { Product } from "@/lib/products";
 
 export function CartView({ suggestions }: { suggestions: Product[] }) {
@@ -58,7 +58,7 @@ export function CartView({ suggestions }: { suggestions: Product[] }) {
           </Link>
         </div>
 
-        <aside className="h-fit rounded-xl border border-border bg-bg p-5 lg:sticky lg:top-40">
+        <aside className="h-fit rounded-xl border border-border bg-bg p-5 lg:sticky lg:top-20">
           <h2 className="text-lg font-bold text-fg">Resumen</h2>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
@@ -93,7 +93,7 @@ export function CartView({ suggestions }: { suggestions: Product[] }) {
           </a>
 
           <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted">
-            <FileText className="h-3.5 w-3.5" /> 12 cuotas sin interés disponibles
+            <FileText className="h-3.5 w-3.5" /> {site.installments.label} disponibles
           </p>
         </aside>
       </div>

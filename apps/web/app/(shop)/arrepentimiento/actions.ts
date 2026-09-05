@@ -1,7 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { clientIp } from "@/lib/client-ip";
 import { isRateLimited } from "@/lib/rate-limit";
 import { sendSimpleEmail } from "@/lib/email";
 import { escapeHtml } from "@/lib/email-template";
@@ -28,7 +28,7 @@ export async function createWithdrawalRequest(
   _prev: WithdrawalState,
   formData: FormData,
 ): Promise<WithdrawalState> {
-  const ip = ((await headers()).get("x-forwarded-for") ?? "local").split(",")[0]?.trim() || "local";
+  const ip = await clientIp();
   if (isRateLimited(`withdrawal:${ip}`, 3, 60 * 60_000)) {
     return { error: "Ya enviaste varias solicitudes. Esperá un rato o llamanos al " + site.phone };
   }

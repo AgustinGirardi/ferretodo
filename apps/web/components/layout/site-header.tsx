@@ -61,7 +61,9 @@ function MainBar({ categories }: { categories: Category[] }) {
 
 function CategoryChips({ categories }: { categories: Category[] }) {
   return (
-    <nav className="border-b border-border bg-bg" aria-label="Categorías">
+    // Oculta en mobile: ahí esa fila la ocupa el buscador, y las categorías
+    // siguen estando completas en el menú hamburguesa.
+    <nav className="hidden border-b border-border bg-bg sm:block" aria-label="Categorías">
       <div className="container mx-auto flex gap-2 overflow-x-auto px-4 py-2.5">
         {categories.map((cat) => {
           const Icon = iconMap[cat.iconName];
@@ -83,9 +85,19 @@ function CategoryChips({ categories }: { categories: Category[] }) {
 export async function SiteHeader() {
   const categories = await getCategories();
   return (
-    <header className="sticky top-0 z-40">
+    <header>
+      {/* Solo queda fija la barra principal. Antes lo era la cabecera entera:
+          tres barras apiladas, ~144 px pegados arriba, más del 20 % de la
+          pantalla de un teléfono en todas las páginas. */}
       <UtilityBar />
-      <MainBar categories={categories} />
+      <div className="sticky top-0 z-40 shadow-sm">
+        <MainBar categories={categories} />
+        {/* Buscar es la primera acción del cliente, así que en mobile el buscador
+            va siempre a la vista (antes estaba solo dentro del menú hamburguesa). */}
+        <div className="border-b border-border bg-bg px-4 py-2 sm:hidden">
+          <SearchBar />
+        </div>
+      </div>
       {/* En "Mi cuenta" la barra de categorías se oculta para dejar el login limpio. */}
       <HideOnRoutes routes={["/cuenta"]}>
         <CategoryChips categories={categories} />
