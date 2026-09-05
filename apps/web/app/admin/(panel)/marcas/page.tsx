@@ -22,11 +22,11 @@ export default async function AdminBrandsPage() {
       >
         <label className="flex flex-1 flex-col gap-1.5 text-sm">
           <span className="font-medium text-fg">Nueva marca</span>
-          <input name="name" required placeholder="Ej: Stanley" className="input" />
+          <input name="name" required pattern=".*\S.*" title="Escribí un nombre" placeholder="Ej: Stanley" className="input" />
         </label>
         <button
           type="submit"
-          className="inline-flex h-11 items-center gap-2 rounded-md bg-brand-500 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+          className="inline-flex h-11 items-center gap-2 rounded-md bg-brand-cta px-4 text-sm font-medium text-white transition-colors hover:bg-brand-cta-hover"
         >
           <Plus className="h-4 w-4" /> Agregar
         </button>
@@ -48,6 +48,9 @@ export default async function AdminBrandsPage() {
               <input
                 name="name"
                 defaultValue={b.name}
+                required
+                pattern=".*\S.*"
+                title="Escribí un nombre"
                 className="input flex-1"
                 style={{ minWidth: "160px" }}
               />

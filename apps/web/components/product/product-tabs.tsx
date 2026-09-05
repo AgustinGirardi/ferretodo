@@ -1,26 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { RatingStars } from "./rating-stars";
 import type { ProductSpec } from "@/lib/products";
 
 interface ProductTabsProps {
   longDescription: string;
   specs: ProductSpec[];
-  rating: number;
-  reviewCount: number;
 }
 
-type Tab = "desc" | "specs" | "reviews" | "questions";
+type Tab = "desc" | "specs";
 
-export function ProductTabs({ longDescription, specs, rating, reviewCount }: ProductTabsProps) {
+/**
+ * Antes había además "Opiniones" y "Preguntas". La primera mostraba una nota
+ * interna ("se mostrarán acá cuando conectemos la tienda") y la segunda solo
+ * mandaba a WhatsApp: dos de cuatro pestañas vacías a la vista del cliente.
+ * Vuelven cuando haya opiniones y preguntas de verdad.
+ */
+export function ProductTabs({ longDescription, specs }: ProductTabsProps) {
   const [tab, setTab] = useState<Tab>("desc");
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "desc", label: "Descripción" },
     { id: "specs", label: "Especificaciones" },
-    { id: "reviews", label: `Opiniones (${reviewCount})` },
-    { id: "questions", label: "Preguntas" },
   ];
 
   return (
@@ -59,27 +60,6 @@ export function ProductTabs({ longDescription, specs, rating, reviewCount }: Pro
           </table>
         )}
 
-        {tab === "reviews" && (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold text-fg">{rating.toFixed(1)}</span>
-              <div>
-                <RatingStars rating={rating} />
-                <p className="text-sm text-muted">{reviewCount} opiniones</p>
-              </div>
-            </div>
-            <p className="text-sm text-muted">
-              Las opiniones de clientes se mostrarán acá cuando conectemos la tienda.
-            </p>
-          </div>
-        )}
-
-        {tab === "questions" && (
-          <p className="text-sm text-muted">
-            ¿Tenés una duda sobre este producto? Escribinos por WhatsApp y te respondemos al
-            instante.
-          </p>
-        )}
       </div>
     </div>
   );

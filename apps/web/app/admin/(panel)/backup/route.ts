@@ -5,8 +5,16 @@ import { runBackup } from "@/lib/backup";
 
 export const dynamic = "force-dynamic";
 
-/** Genera una copia fresca de la base y la descarga (para guardarla fuera del servidor). */
-export async function GET() {
+/**
+ * Genera una copia fresca de la base y la descarga (para guardarla fuera del
+ * servidor).
+ *
+ * Es POST y no GET a propósito: `runBackup()` además de crear la copia rota las
+ * viejas conservando 14. Como GET, bastaba con llevar al admin logueado a esta
+ * URL catorce veces desde cualquier página para vaciarle el historial de copias
+ * (la cookie es SameSite=Lax, que sí viaja en una navegación de primer nivel).
+ */
+export async function POST() {
   const session = await getAdminSession();
   if (!session) return new Response("No autorizado", { status: 401 });
 

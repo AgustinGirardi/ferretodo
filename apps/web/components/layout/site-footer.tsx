@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Phone, MapPin, Clock, Mail } from "lucide-react";
-import { site } from "@/lib/site";
+import { Phone, MapPin, Clock, MessageCircle, BadgePercent } from "lucide-react";
+import { site, whatsappLink } from "@/lib/site";
 import { getCategories } from "@/lib/products";
 import { LogoMark } from "./logo-mark";
 
@@ -57,26 +57,28 @@ export async function SiteFooter() {
           </ul>
         </div>
 
+        {/* Acá había un formulario de newsletter que no estaba conectado a nada:
+            el visitante dejaba su email, la página se recargaba y no pasaba nada.
+            Hasta que exista de verdad, se ofrece el canal que sí funciona. */}
         <div>
           <h3 className="mb-3 text-sm font-medium text-white">Novedades y ofertas</h3>
-          <p className="mb-3 text-sm text-[#94a3b8]">Suscribite y enterate de las promos.</p>
-          <form className="flex overflow-hidden rounded-md border border-[#334155]">
-            <span className="flex items-center pl-3 text-[#94a3b8]">
-              <Mail className="h-4 w-4" />
-            </span>
-            <input
-              type="email"
-              placeholder="Tu email"
-              aria-label="Tu email"
-              className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-[#64748b]"
-            />
-            <button
-              type="submit"
-              className="bg-brand-500 px-4 text-sm font-medium text-white transition-colors hover:bg-brand-600"
-            >
-              Sumarme
-            </button>
-          </form>
+          <p className="mb-3 text-sm text-[#94a3b8]">
+            Escribinos por WhatsApp y te pasamos precios, stock y las promos del mes.
+          </p>
+          <a
+            href={whatsappLink("Hola FERRETODO, quería consultar por precios y ofertas.")}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-md bg-[#25D366] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <MessageCircle className="h-4 w-4" /> Consultar por WhatsApp
+          </a>
+          <Link
+            href="/ofertas"
+            className="mt-3 flex items-center gap-2 text-sm text-[#cbd5e1] hover:text-white"
+          >
+            <BadgePercent className="h-4 w-4" /> Ver ofertas vigentes
+          </Link>
         </div>
       </div>
 

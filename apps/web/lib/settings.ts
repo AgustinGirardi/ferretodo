@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "./prisma";
 
 /** Ajustes editables de la home (portada). Se guardan en SiteSetting (key/value). */
@@ -42,7 +43,9 @@ export const HOME_DEFAULTS: HomeSettings = {
 
 const PREFIX = "home.";
 
-export async function getHomeSettings(): Promise<HomeSettings> {
+/** Igual que getCategories: la piden la home, el hero y la franja de beneficios,
+ *  y sin cache() eran tres consultas idénticas por carga. */
+export const getHomeSettings = cache(async (): Promise<HomeSettings> => {
   const rows = await prisma.siteSetting.findMany({ where: { key: { startsWith: PREFIX } } });
   const map = Object.fromEntries(rows.map((r) => [r.key.slice(PREFIX.length), r.value]));
   const get = (k: keyof HomeSettings) => map[k] ?? HOME_DEFAULTS[k];
@@ -63,7 +66,7 @@ export async function getHomeSettings(): Promise<HomeSettings> {
     featuredTitle: get("featuredTitle"),
     bestSellersTitle: get("bestSellersTitle"),
   };
-}
+});
 
 export async function saveHomeSettings(values: HomeSettings): Promise<void> {
   await Promise.all(

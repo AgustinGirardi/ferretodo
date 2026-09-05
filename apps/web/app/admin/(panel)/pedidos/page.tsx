@@ -3,21 +3,35 @@ import { ChevronRight, Inbox } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/format";
 import { orderStatus, DELIVERY_LABELS } from "@/lib/order-status";
+import { Pagination, pageParam } from "@/components/ui/pagination";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOrdersPage() {
+// 50 pedidos por página: antes se dibujaba la tabla entera en cada visita.
+const PER_PAGE = 50;
+
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const sp = await searchParams;
+  const total = await prisma.order.count();
+  const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const page = Math.min(pageParam(sp.page), pages);
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { items: true } } },
+    skip: (page - 1) * PER_PAGE,
+    take: PER_PAGE,
   });
 
   return (
     <div>
       <h1 className="mb-1 text-2xl font-bold text-fg">Pedidos</h1>
-      <p className="mb-6 text-sm text-muted">{orders.length} pedidos recibidos</p>
+      <p className="mb-6 text-sm text-muted">{total} pedidos recibidos</p>
 
-      {orders.length === 0 ? (
+      {total === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-16 text-center">
           <Inbox className="h-10 w-10 text-muted" />
           <p className="text-sm font-medium text-fg">Todavía no hay pedidos</p>
@@ -74,6 +88,14 @@ export default async function AdminOrdersPage() {
           </table>
         </div>
       )}
+
+      <Pagination
+        page={page}
+        pages={pages}
+        basePath="/admin/pedidos"
+        params={sp}
+        summary={`${total} pedidos`}
+      />
     </div>
   );
 }

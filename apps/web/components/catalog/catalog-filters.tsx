@@ -7,9 +7,16 @@ interface CatalogFiltersProps {
   brands: string[];
   categories: { name: string; slug: string }[];
   showCategory?: boolean;
+  /** false en /ofertas, donde la oferta ya está aplicada y el check no haría nada. */
+  showOnSale?: boolean;
 }
 
-export function CatalogFilters({ brands, categories, showCategory = true }: CatalogFiltersProps) {
+export function CatalogFilters({
+  brands,
+  categories,
+  showCategory = true,
+  showOnSale = true,
+}: CatalogFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -23,6 +30,9 @@ export function CatalogFilters({ brands, categories, showCategory = true }: Cata
   const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
   function commit(params: URLSearchParams) {
+    // Cambiar un filtro vuelve a la primera página: seguir en la 5 de un
+    // resultado que ahora tiene 2 páginas no le sirve a nadie.
+    params.delete("page");
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
@@ -144,15 +154,17 @@ export function CatalogFilters({ brands, categories, showCategory = true }: Cata
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 font-medium text-fg">Más opciones</legend>
-        <label className="flex cursor-pointer items-center gap-2 text-muted">
-          <input
-            type="checkbox"
-            checked={searchParams.get("onSale") === "1"}
-            onChange={(e) => setParam("onSale", e.target.checked ? "1" : null)}
-            className="h-4 w-4 accent-brand-500"
-          />
-          En oferta
-        </label>
+        {showOnSale && (
+          <label className="flex cursor-pointer items-center gap-2 text-muted">
+            <input
+              type="checkbox"
+              checked={searchParams.get("onSale") === "1"}
+              onChange={(e) => setParam("onSale", e.target.checked ? "1" : null)}
+              className="h-4 w-4 accent-brand-500"
+            />
+            En oferta
+          </label>
+        )}
         <label className="flex cursor-pointer items-center gap-2 text-muted">
           <input
             type="checkbox"

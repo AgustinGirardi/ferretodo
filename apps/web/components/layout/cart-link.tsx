@@ -22,7 +22,7 @@ export function CartLink() {
           // key={count}: remonta el badge en cada cambio para replay del "pop".
           <span
             key={count}
-            className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] font-medium text-white motion-safe:animate-badge-pop"
+            className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-cta px-1 text-[10px] font-medium text-white motion-safe:animate-badge-pop"
           >
             {count}
           </span>

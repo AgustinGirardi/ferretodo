@@ -13,7 +13,10 @@ export function SortSelect() {
     const params = new URLSearchParams(searchParams.toString());
     if (e.target.value === "relevance") params.delete("sort");
     else params.set("sort", e.target.value);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    // Reordenar arranca de nuevo desde la primera página.
+    params.delete("page");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
 
   return (

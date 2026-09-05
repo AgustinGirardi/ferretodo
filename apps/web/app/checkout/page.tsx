@@ -13,6 +13,8 @@ import {
   Banknote,
   Building2,
   PartyPopper,
+  Copy,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@ferretodo/ui";
 import { LogoMark } from "@/components/layout/logo-mark";
@@ -20,7 +22,7 @@ import { useCart } from "@/lib/cart-store";
 import { createOrder } from "./actions";
 import { cartSubtotal, shippingZones } from "@/lib/cart-utils";
 import { formatPrice } from "@/lib/format";
-import { site } from "@/lib/site";
+import { site, hasBankDetails, whatsappLink } from "@/lib/site";
 import { EMAIL_RE } from "@/lib/validation";
 
 type DeliveryMethod = "pickup" | "delivery";
@@ -135,6 +137,9 @@ export default function CheckoutPage() {
             Tu pedido <strong className="text-fg">{orderNumber}</strong> fue registrado por{" "}
             <strong className="text-fg">{formatPrice(placedTotal)}</strong>.
           </p>
+
+          {payment === "transfer" && <TransferDetails total={placedTotal} orderNumber={orderNumber} />}
+
           <p className="text-sm text-muted">
             Te enviamos un email de confirmación. Te contactamos para coordinar el{" "}
             {delivery === "pickup" ? "retiro en el local" : "envío"}.
@@ -183,9 +188,9 @@ export default function CheckoutPage() {
                   <span
                     className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                       active
-                        ? "bg-brand-500 text-white"
+                        ? "bg-brand-cta text-white"
                         : complete
-                          ? "bg-success text-white"
+                          ? "bg-success-solid text-white"
                           : "bg-surface text-muted"
                     }`}
                   >
@@ -320,7 +325,7 @@ export default function CheckoutPage() {
                   onClick={() => setPayment("mercadopago")}
                   icon={<CreditCard className="h-5 w-5" />}
                   title="Mercado Pago"
-                  desc="Tarjetas de crédito/débito y hasta 12 cuotas"
+                  desc={`Tarjetas de crédito/débito y hasta ${site.installments.count} cuotas`}
                   wide
                 />
                 <OptionCard
@@ -408,6 +413,91 @@ export default function CheckoutPage() {
   );
 }
 
+/**
+ * Datos para transferir, en la pantalla de confirmación. Sin esto el comprador
+ * que elige transferencia se va sin saber a dónde mandar la plata.
+ */
+function TransferDetails({ total, orderNumber }: { total: number; orderNumber: string }) {
+  if (!hasBankDetails()) {
+    return (
+      <p className="w-full rounded-lg border border-border bg-surface p-4 text-sm text-fg">
+        Te contactamos con los datos para transferir. También podés pedirlos al{" "}
+        <a href={`tel:${site.phone}`} className="font-medium text-brand-600 hover:underline">
+          {site.phone}
+        </a>
+        .
+      </p>
+    );
+  }
+
+  const rows = [
+    site.bank.alias && { label: "Alias", value: site.bank.alias, copy: true },
+    site.bank.cbu && { label: "CBU", value: site.bank.cbu, copy: true },
+    site.bank.holder && { label: "Titular", value: site.bank.holder, copy: false },
+    site.bank.bankName && { label: "Banco", value: site.bank.bankName, copy: false },
+  ].filter(Boolean) as { label: string; value: string; copy: boolean }[];
+
+  return (
+    <div className="w-full rounded-xl border border-border bg-surface p-5 text-left">
+      <h2 className="text-base font-bold text-fg">Para completar tu compra, transferí</h2>
+      <p className="mt-1 text-sm text-muted">
+        Importe exacto: <strong className="text-fg">{formatPrice(total)}</strong>. Poné{" "}
+        <strong className="text-fg">{orderNumber}</strong> como referencia.
+      </p>
+
+      <dl className="mt-4 flex flex-col gap-2">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center gap-3 text-sm">
+            <dt className="w-16 shrink-0 text-muted">{r.label}</dt>
+            <dd className="min-w-0 flex-1 break-all font-medium text-fg">{r.value}</dd>
+            {r.copy && <CopyButton value={r.value} label={r.label} />}
+          </div>
+        ))}
+      </dl>
+
+      <a
+        href={whatsappLink(`Hola FERRETODO, te paso el comprobante del pedido ${orderNumber}.`)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 block"
+      >
+        <Button variant="whatsapp" size="md" className="w-full">
+          <MessageCircle className="h-4 w-4" /> Enviar comprobante por WhatsApp
+        </Button>
+      </a>
+      <p className="mt-2 text-xs text-muted">
+        Preparamos el pedido apenas confirmamos el pago.
+      </p>
+    </div>
+  );
+}
+
+function CopyButton({ value, label }: { value: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // Sin permiso de portapapeles: el valor está a la vista para copiarlo a mano.
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={`Copiar ${label}`}
+      className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted transition-colors hover:border-brand-500 hover:text-brand-600"
+    >
+      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? "Copiado" : "Copiar"}
+    </button>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5 text-sm">
@@ -446,7 +536,7 @@ function OptionCard({
       </span>
       <span
         className={`ml-auto flex h-5 w-5 items-center justify-center rounded-full border ${
-          active ? "border-brand-500 bg-brand-500 text-white" : "border-border"
+          active ? "border-brand-500 bg-brand-cta text-white" : "border-border"
         }`}
       >
         {active && <Check className="h-3 w-3" />}

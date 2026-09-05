@@ -1,4 +1,4 @@
-import { site } from "./site";
+import { site, hasBankDetails } from "./site";
 import { formatPrice } from "./format";
 
 export interface OrderEmailData {
@@ -12,6 +12,9 @@ export interface OrderEmailData {
   total: number;
   deliveryLabel: string;
   paymentLabel: string;
+  /** Método crudo ("transfer" | "cash" | "mercadopago"): decide si se adjuntan
+   *  los datos bancarios para que el cliente pueda pagar desde el email. */
+  paymentMethod: string;
 }
 
 const BRAND = "#d94e04";
@@ -34,6 +37,36 @@ export function renderOrderEmail(d: OrderEmailData): string {
       </tr>`,
     )
     .join("");
+
+  const bankRow = (label: string, value: string) =>
+    value
+      ? `<tr><td style="padding:3px 0;color:${MUTED};font-size:13px;width:70px;">${escape(label)}</td>
+         <td style="padding:3px 0;color:${SLATE};font-size:14px;font-weight:bold;">${escape(value)}</td></tr>`
+      : "";
+
+  // Datos para transferir: sin esto el cliente que eligió transferencia no sabe
+  // a dónde mandar la plata y el pedido queda impago.
+  const transferBlock =
+    d.paymentMethod === "transfer" && hasBankDetails()
+      ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;border:1px solid ${BORDER};border-radius:8px;">
+           <tr><td style="padding:16px;">
+             <p style="margin:0 0 4px;font-size:15px;font-weight:bold;color:${SLATE};">Para completar tu compra, transferí</p>
+             <p style="margin:0 0 12px;font-size:13px;color:${MUTED};">
+               Importe exacto: <strong style="color:${SLATE};">${formatPrice(d.total)}</strong> ·
+               Referencia: <strong style="color:${SLATE};">${escape(d.orderNumber)}</strong>
+             </p>
+             <table role="presentation" cellpadding="0" cellspacing="0">
+               ${bankRow("Alias", site.bank.alias)}
+               ${bankRow("CBU", site.bank.cbu)}
+               ${bankRow("Titular", site.bank.holder)}
+               ${bankRow("Banco", site.bank.bankName)}
+             </table>
+             <p style="margin:12px 0 0;font-size:13px;color:${MUTED};">
+               Mandanos el comprobante por WhatsApp al ${site.phone} y preparamos el pedido.
+             </p>
+           </td></tr>
+         </table>`
+      : "";
 
   const discountRow =
     d.discount > 0
@@ -69,6 +102,8 @@ export function renderOrderEmail(d: OrderEmailData): string {
             <tr><td style="padding:10px 0 0;border-top:2px solid ${BORDER};color:${SLATE};font-size:16px;font-weight:bold;">Total</td>
                 <td style="padding:10px 0 0;border-top:2px solid ${BORDER};color:${SLATE};font-size:16px;font-weight:bold;text-align:right;">${formatPrice(d.total)}</td></tr>
           </table>
+
+          ${transferBlock}
 
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;background:#f8fafc;border-radius:8px;">
             <tr><td style="padding:16px;">

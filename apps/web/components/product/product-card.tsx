@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Check, AlertTriangle, X } from "lucide-react";
 import { formatPrice } from "@/lib/format";
+import { site } from "@/lib/site";
 import { iconMap } from "@/lib/icons";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import type { Product, StockStatus } from "@/lib/products";
@@ -49,7 +50,7 @@ export function ProductCard({ product }: { product: Product }) {
             alt={product.name}
             fill
             sizes="(max-width: 640px) 50vw, 25vw"
-            className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
+            className="object-contain p-3 transition-transform duration-300 motion-safe:group-hover:scale-105"
           />
         ) : (
           <Icon
@@ -77,7 +78,7 @@ export function ProductCard({ product }: { product: Product }) {
           <div className="flex items-baseline gap-2">
             <span className="text-lg font-bold text-fg">{formatPrice(product.price)}</span>
           </div>
-          <span className="text-xs font-medium text-success">12 cuotas sin interés</span>
+          <span className="text-xs font-medium text-success">{site.installments.label}</span>
         </div>
 
         <div className="mt-1">
@@ -93,6 +94,7 @@ export function ProductCard({ product }: { product: Product }) {
             price: product.price,
             iconName: product.iconName,
             imageUrl: product.imageUrl,
+            maxQty: product.stockQty,
           }}
           outOfStock={product.stock === "out"}
         />

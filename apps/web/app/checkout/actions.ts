@@ -1,7 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { clientIp } from "@/lib/client-ip";
 import { shippingZones } from "@/lib/cart-utils";
 import { sendOrderConfirmation } from "@/lib/email";
 import { DELIVERY_LABELS, PAYMENT_LABELS } from "@/lib/order-status";
@@ -44,7 +44,7 @@ const MAX_ITEMS = 50;
 const MAX_QTY = 999;
 
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
-  const ip = ((await headers()).get("x-forwarded-for") ?? "local").split(",")[0]?.trim() || "local";
+  const ip = await clientIp();
 
   const name = String(input.customer?.name ?? "").trim();
   const email = String(input.customer?.email ?? "").trim();
@@ -225,6 +225,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
       total,
       deliveryLabel: DELIVERY_LABELS[order.deliveryMethod] ?? order.deliveryMethod,
       paymentLabel: PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod,
+      paymentMethod: order.paymentMethod,
     });
   } catch (e) {
     console.error("[checkout] no se pudo enviar el email de confirmación:", e);

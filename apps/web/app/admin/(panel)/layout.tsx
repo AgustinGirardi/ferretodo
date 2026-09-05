@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { getAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminMobileNav } from "@/components/admin/admin-mobile-nav";
 import { AdminThemeProvider } from "@/components/admin/admin-theme";
 import { LogoMark } from "@/components/layout/logo-mark";
 import { logout } from "../actions";
@@ -30,11 +31,12 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         </aside>
 
         <div className="flex min-h-screen flex-1 flex-col">
-          <header className="flex h-14 items-center justify-between border-b border-border px-4 sm:px-6">
+          <header className="flex h-14 items-center gap-3 border-b border-border px-4 sm:px-6">
+            <AdminMobileNav />
             <span className="text-sm text-muted">
               Hola, <span className="font-medium text-fg">{admin?.name ?? "Admin"}</span>
             </span>
-            <form action={logout}>
+            <form action={logout} className="ml-auto">
               <button
                 type="submit"
                 className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm text-fg transition-colors hover:bg-surface"

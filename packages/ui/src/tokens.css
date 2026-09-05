@@ -1,17 +1,37 @@
 /* FERRETODO — Design tokens. Documentación: docs/05-DESIGN-SYSTEM.md */
 
+/*
+ * Los tres naranjas de la marca tienen cada uno un trabajo distinto. Mezclarlos
+ * es lo que hacía que el texto no llegara al contraste mínimo (WCAG AA, 4,5:1):
+ *
+ *   --brand-500  identidad: logo, "TODO", bordes, acentos sobre fondo oscuro.
+ *                No se usa para texto chico sobre fondo claro.
+ *   --brand-600  texto y links sobre superficies que siguen el tema. Cambia con
+ *                el tema porque el mismo naranja no puede contrastar contra
+ *                blanco y contra slate a la vez.
+ *   --brand-cta  fondo de botón debajo de texto blanco. Es el mismo en los dos
+ *                temas: contrasta contra el blanco del texto, no contra la página.
+ *
+ * Para volver al naranja original en los botones alcanza con poner #f25c05 en
+ * --brand-cta (queda en 3,3:1, por debajo del mínimo).
+ */
 :root {
   /* Marca */
   --brand-50: #fff3eb;
   --brand-500: #f25c05;
-  --brand-600: #d94e04;
+  --brand-600: #c74806; /* sobre blanco: 4,8:1 */
+  --brand-cta: #c74806; /* con texto blanco: 4,8:1 */
+  --brand-cta-hover: #a83c05; /* con texto blanco: 6,3:1 */
 
   /* Semánticos */
-  --success: #16a34a;
-  --warning: #d97706;
+  --success: #15803d; /* sobre blanco: 5,0:1 */
+  --warning: #b45309; /* sobre blanco: 5,0:1 */
   --danger: #dc2626;
   --info: #2563eb;
+  /* Versiones "sólidas": fondos debajo de texto/íconos blancos. No cambian con
+     el tema, igual que --brand-cta, porque contrastan contra el blanco de arriba. */
   --sale: #dc2626;
+  --success-solid: #15803d;
 
   /* Tema claro (default) */
   --bg: #ffffff;
@@ -23,6 +43,14 @@
 
 .dark {
   /* Tema oscuro (panel admin por defecto) */
+  /* brand-50 se usa como fondo suave (bg-brand-50) junto a texto --fg: en oscuro
+     tiene que ser oscuro o el texto queda blanco sobre blanco. */
+  --brand-50: #2a1a10;
+  /* Los colores de texto se aclaran: los tonos oscuros del tema claro no se leen
+     sobre slate. Contra --bg dan 8,3:1 (naranja), 10,8:1 (verde) y 11,3:1 (ámbar). */
+  --brand-600: #fb923c;
+  --success: #4ade80;
+  --warning: #fbbf24;
   --bg: #0b1120;
   --surface: #0f172a;
   --fg: #f1f5f9;
@@ -31,8 +59,14 @@
 }
 
 /* Declaración explícita del tema claro: permite forzar modo claro en un
-   subárbol (ej. panel admin) sin depender de heredar de un ancestro .dark. */
+   subárbol (ej. panel admin) sin depender de heredar de un ancestro .dark.
+   Tiene que repetir TODO lo que .dark redefine, o el subárbol claro hereda
+   los valores oscuros del ancestro. */
 .light {
+  --brand-50: #fff3eb;
+  --brand-600: #c74806;
+  --success: #15803d;
+  --warning: #b45309;
   --bg: #ffffff;
   --surface: #f8fafc;
   --fg: #0f172a;

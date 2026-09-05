@@ -2,11 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { CreditCard, Store, Truck, MessageCircle, Wrench } from "lucide-react";
 import { Button } from "@ferretodo/ui";
-import { whatsappLink } from "@/lib/site";
+import { site, whatsappLink } from "@/lib/site";
 import { getHomeSettings } from "@/lib/settings";
 
 const trustBadges = [
-  { icon: CreditCard, label: "12 cuotas sin interés", className: "bg-[#e6f1fb] text-[#0c447c]" },
+  { icon: CreditCard, label: site.installments.label, className: "bg-[#e6f1fb] text-[#0c447c]" },
   { icon: Store, label: "Retiro hoy en el local", className: "bg-[#e1f5ee] text-[#085041]" },
   { icon: Truck, label: "Envío por zona", className: "bg-[#faeeda] text-[#633806]" },
 ];

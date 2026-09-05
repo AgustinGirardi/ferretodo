@@ -47,6 +47,8 @@ export async function saveCategory(formData: FormData) {
     });
   }
   revalidatePath("/admin/categorias");
+  revalidatePath("/");
+  revalidatePath("/productos/[slug]", "page");
 }
 
 export interface DeleteResult {
@@ -67,5 +69,7 @@ export async function deleteCategory(id: string): Promise<DeleteResult> {
   }
   await prisma.category.delete({ where: { id } });
   revalidatePath("/admin/categorias");
+  revalidatePath("/");
+  revalidatePath("/productos/[slug]", "page");
   return { ok: true };
 }

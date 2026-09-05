@@ -13,6 +13,9 @@ export interface CartItemInput {
   price: number;
   iconName: IconName;
   imageUrl?: string;
+  /** Stock al momento de agregarlo: topea el "+" del carrito. Puede faltar en
+   *  carritos guardados antes de este campo, y ahí no se topea nada. */
+  maxQty?: number;
 }
 
 export interface CartItem extends CartItemInput {
@@ -38,11 +41,17 @@ export const useCart = create<CartState>()(
       items: [],
       add: (item, qty = 1) =>
         set((s) => {
+          const cap = item.maxQty && item.maxQty > 0 ? item.maxQty : 999;
           const existing = s.items.find((i) => i.id === item.id);
           if (existing) {
-            return { items: s.items.map((i) => (i.id === item.id ? { ...i, qty: i.qty + qty } : i)) };
+            // Se refresca el snapshot: si cambió el stock, vale el nuevo.
+            return {
+              items: s.items.map((i) =>
+                i.id === item.id ? { ...i, ...item, qty: Math.min(cap, i.qty + qty) } : i,
+              ),
+            };
           }
-          return { items: [...s.items, { ...item, qty }] };
+          return { items: [...s.items, { ...item, qty: Math.min(cap, qty) }] };
         }),
       remove: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
       setQty: (id, qty) =>
@@ -50,7 +59,9 @@ export const useCart = create<CartState>()(
           items:
             qty <= 0
               ? s.items.filter((i) => i.id !== id)
-              : s.items.map((i) => (i.id === id ? { ...i, qty } : i)),
+              : s.items.map((i) =>
+                  i.id === id ? { ...i, qty: Math.min(i.maxQty && i.maxQty > 0 ? i.maxQty : 999, qty) } : i,
+                ),
         })),
       clear: () => set({ items: [] }),
     }),

@@ -19,6 +19,9 @@ module.exports = {
           50: "var(--brand-50)",
           500: "var(--brand-500)",
           600: "var(--brand-600)",
+          // Fondo de botón (siempre debajo de texto blanco). Ver tokens.css.
+          cta: "var(--brand-cta)",
+          "cta-hover": "var(--brand-cta-hover)",
         },
         bg: "var(--bg)",
         surface: "var(--surface)",
@@ -26,6 +29,7 @@ module.exports = {
         muted: "var(--muted)",
         border: "var(--border)",
         success: "var(--success)",
+        "success-solid": "var(--success-solid)",
         warning: "var(--warning)",
         danger: "var(--danger)",
         info: "var(--info)",
