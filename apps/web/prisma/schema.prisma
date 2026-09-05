@@ -27,6 +27,10 @@ model Customer {
   phone        String   @default("")
   passwordHash String? // null = cuenta creada con Google (sin contraseña propia)
   googleId     String?  @unique // "sub" del id_token de Google
+  // Fecha en que el titular probó que el email es suyo (clic en el link que se
+  // manda al registrarse, o login con Google, que ya lo verifica). null = sin
+  // verificar: la fila la pudo crear cualquiera con el email de otra persona.
+  emailVerifiedAt DateTime?
   createdAt    DateTime @default(now())
   orders       Order[]
 }

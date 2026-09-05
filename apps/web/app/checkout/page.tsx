@@ -250,17 +250,21 @@ export default function CheckoutPage() {
           {step === 2 && (
             <section className="flex flex-col gap-4 rounded-xl border border-border bg-bg p-5">
               <h2 className="text-lg font-bold text-fg">¿Cómo querés recibirlo?</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div role="radiogroup" aria-label="Forma de entrega" className="grid gap-3 sm:grid-cols-2">
                 <OptionCard
-                  active={delivery === "pickup"}
-                  onClick={() => setDelivery("pickup")}
+                  name="delivery"
+                  value="pickup"
+                  checked={delivery === "pickup"}
+                  onSelect={() => setDelivery("pickup")}
                   icon={<Store className="h-5 w-5" />}
                   title="Retiro en el local"
                   desc="Gratis · Río Cuarto"
                 />
                 <OptionCard
-                  active={delivery === "delivery"}
-                  onClick={() => setDelivery("delivery")}
+                  name="delivery"
+                  value="delivery"
+                  checked={delivery === "delivery"}
+                  onSelect={() => setDelivery("delivery")}
                   icon={<Truck className="h-5 w-5" />}
                   title="Envío a domicilio"
                   desc="Costo según zona"
@@ -319,18 +323,22 @@ export default function CheckoutPage() {
           {step === 3 && (
             <section className="flex flex-col gap-4 rounded-xl border border-border bg-bg p-5">
               <h2 className="text-lg font-bold text-fg">¿Cómo querés pagar?</h2>
-              <div className="flex flex-col gap-3">
+              <div role="radiogroup" aria-label="Forma de pago" className="flex flex-col gap-3">
                 <OptionCard
-                  active={payment === "mercadopago"}
-                  onClick={() => setPayment("mercadopago")}
+                  name="payment"
+                  value="mercadopago"
+                  checked={payment === "mercadopago"}
+                  onSelect={() => setPayment("mercadopago")}
                   icon={<CreditCard className="h-5 w-5" />}
                   title="Mercado Pago"
                   desc={`Tarjetas de crédito/débito y hasta ${site.installments.count} cuotas`}
                   wide
                 />
                 <OptionCard
-                  active={payment === "transfer"}
-                  onClick={() => setPayment("transfer")}
+                  name="payment"
+                  value="transfer"
+                  checked={payment === "transfer"}
+                  onSelect={() => setPayment("transfer")}
                   icon={<Building2 className="h-5 w-5" />}
                   title="Transferencia bancaria"
                   desc="5% de descuento"
@@ -338,8 +346,10 @@ export default function CheckoutPage() {
                 />
                 {delivery === "pickup" ? (
                   <OptionCard
-                    active={payment === "cash"}
-                    onClick={() => setPayment("cash")}
+                    name="payment"
+                    value="cash"
+                    checked={payment === "cash"}
+                    onSelect={() => setPayment("cash")}
                     icon={<Banknote className="h-5 w-5" />}
                     title="Efectivo"
                     desc="Al retirar en el local"
@@ -507,40 +517,61 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+/**
+ * Una opción de un grupo de elección única (entrega, pago). Por dentro es un
+ * <input type="radio"> real, no un <button>: eso le da gratis la navegación con
+ * flechas, el anuncio "opción 2 de 3" en el lector de pantalla y el estado
+ * marcado. Antes eran botones sueltos: quien no ve la pantalla no tenía forma de
+ * saber que elegir uno descartaba el otro, ni cuál estaba elegido.
+ */
 function OptionCard({
-  active,
-  onClick,
+  name,
+  value,
+  checked,
+  onSelect,
   icon,
   title,
   desc,
   wide,
 }: {
-  active: boolean;
-  onClick: () => void;
+  name: string;
+  value: string;
+  checked: boolean;
+  onSelect: () => void;
   icon: React.ReactNode;
   title: string;
   desc: string;
   wide?: boolean;
 }) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-3 rounded-lg border p-4 text-left transition-colors ${
-        active ? "border-brand-500 bg-brand-50" : "border-border hover:bg-surface"
+    <label
+      className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 text-left transition-colors focus-within:ring-2 focus-within:ring-brand-500 focus-within:ring-offset-2 ${
+        checked ? "border-brand-500 bg-brand-50" : "border-border hover:bg-surface"
       } ${wide ? "w-full" : ""}`}
     >
-      <span className={active ? "text-brand-600" : "text-muted"}>{icon}</span>
+      {/* El control nativo se oculta a la vista pero sigue existiendo para el
+          teclado y el lector de pantalla; el anillo de foco lo dibuja el label. */}
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        checked={checked}
+        onChange={onSelect}
+        className="sr-only"
+      />
+      <span className={checked ? "text-brand-600" : "text-muted"}>{icon}</span>
       <span className="flex flex-col">
         <span className="text-sm font-medium text-fg">{title}</span>
         <span className="text-xs text-muted">{desc}</span>
       </span>
       <span
+        aria-hidden="true"
         className={`ml-auto flex h-5 w-5 items-center justify-center rounded-full border ${
-          active ? "border-brand-500 bg-brand-cta text-white" : "border-border"
+          checked ? "border-brand-500 bg-brand-cta text-white" : "border-border"
         }`}
       >
-        {active && <Check className="h-3 w-3" />}
+        {checked && <Check className="h-3 w-3" />}
       </span>
-    </button>
+    </label>
   );
 }

@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { getAdminSession } from "@/lib/auth";
+import { createSession, getAdminSession } from "@/lib/auth";
 
 export interface PasswordState {
   ok?: boolean;
@@ -30,10 +30,13 @@ export async function changePassword(
     return { error: "La contraseña actual es incorrecta." };
   }
 
-  await prisma.adminUser.update({
-    where: { id: user.id },
-    data: { passwordHash: await bcrypt.hash(next, 10) },
-  });
+  const passwordHash = await bcrypt.hash(next, 10);
+  await prisma.adminUser.update({ where: { id: user.id }, data: { passwordHash } });
+
+  // La sesión vieja ya no vale (su `pv` quedó atado a la contraseña anterior),
+  // así que se emite una nueva para esta pestaña. En cualquier otro dispositivo
+  // donde la sesión estuviera abierta, el próximo click pide login de nuevo.
+  await createSession(user.id, passwordHash);
 
   return { ok: true };
 }

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { LogOut, Package, Inbox } from "lucide-react";
+import { LogOut, Package, Inbox, MailCheck, MailWarning } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCustomerSession } from "@/lib/customer-auth";
 import { formatPrice } from "@/lib/format";
 import { orderStatus } from "@/lib/order-status";
 import { googleEnabled } from "@/lib/google-oauth";
 import { CustomerAuthForms } from "@/components/account/customer-auth-forms";
-import { logoutCustomer } from "./actions";
+import { logoutCustomer, resendVerification } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -18,16 +18,20 @@ export const metadata: Metadata = {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; verificado?: string; reenviado?: string }>;
 }) {
   const session = await getCustomerSession();
-  const { error } = await searchParams;
+  const { error, verificado, reenviado } = await searchParams;
   const oauthError =
     error === "google"
       ? "No pudimos completar el ingreso con Google. Probá de nuevo."
       : error === "cuenta_existente"
         ? "Ya existe una cuenta con ese email creada con contraseña. Iniciá sesión con tu contraseña y después vinculás Google."
-        : undefined;
+        : error === "verificacion"
+          ? "El link de confirmación no sirve o ya venció. Pedí uno nuevo desde tu cuenta."
+          : error === "reenvio"
+            ? "Ya pediste el link varias veces. Esperá un rato antes de volver a intentarlo."
+            : undefined;
 
   if (!session) {
     return (
@@ -52,8 +56,9 @@ export default async function AccountPage({
     );
   }
 
-  // Por customerId (pedidos hechos con esta sesión), nunca por email: el email
-  // no está verificado, así que matchear por email filtraría pedidos ajenos.
+  // Por customerId (pedidos hechos con esta sesión), nunca por email: el email de
+  // un pedido lo escribe el comprador en el checkout y puede ser cualquiera, así
+  // que matchear por email mostraría pedidos ajenos.
   const orders = await prisma.order.findMany({
     where: { customerId: customer.id },
     orderBy: { createdAt: "desc" },
@@ -62,6 +67,44 @@ export default async function AccountPage({
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-10">
+      {verificado === "1" && (
+        <p className="mb-6 flex items-center gap-2 rounded-lg border border-success bg-surface px-4 py-3 text-sm text-fg">
+          <MailCheck className="h-4 w-4 shrink-0 text-success" />
+          Listo, confirmamos tu email.
+        </p>
+      )}
+
+      {oauthError && (
+        <p className="mb-6 rounded-lg border border-border bg-surface px-4 py-3 text-sm text-fg">
+          {oauthError}
+        </p>
+      )}
+
+      {/* Sin confirmar, la cuenta no prueba que el email sea de quien la creó.
+          Confirmarlo es también lo que después habilita a entrar con Google. */}
+      {!customer.emailVerifiedAt && (
+        <div className="mb-6 flex flex-col gap-2 rounded-lg border border-warning bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-start gap-2 text-sm text-fg">
+            <MailWarning className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <span>
+              {reenviado === "1"
+                ? `Te mandamos un link a ${customer.email}. Revisá tu correo (y el spam).`
+                : "Todavía no confirmaste tu email. Te mandamos un link cuando creaste la cuenta."}
+            </span>
+          </p>
+          {reenviado !== "1" && (
+            <form action={resendVerification} className="shrink-0">
+              <button
+                type="submit"
+                className="rounded-md border border-border px-3 py-1.5 text-sm text-fg transition-colors hover:bg-bg"
+              >
+                Reenviar link
+              </button>
+            </form>
+          )}
+        </div>
+      )}
+
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-fg">Hola, {customer.name.split(" ")[0]}</h1>
