@@ -20,7 +20,12 @@ export function SearchBar({ className = "" }: { className?: string }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
+  // Sugerencia resaltada con las flechas. -1 = ninguna (manda lo que se escribió).
+  const [active, setActive] = useState(-1);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const LISTBOX_ID = "buscador-sugerencias";
+  const optionId = (i: number) => `${LISTBOX_ID}-${i}`;
 
   useEffect(() => {
     const term = query.trim();
@@ -32,7 +37,10 @@ export function SearchBar({ className = "" }: { className?: string }) {
     const t = setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: ctrl.signal })
         .then((r) => r.json())
-        .then((data: Suggestion[]) => setSuggestions(data))
+        .then((data: Suggestion[]) => {
+          setSuggestions(data);
+          setActive(-1);
+        })
         .catch(() => {});
     }, 200);
     return () => {
@@ -54,6 +62,34 @@ export function SearchBar({ className = "" }: { className?: string }) {
     router.push(`/productos/${slug}`);
   }
 
+  /**
+   * Navegación con teclado del combobox. Antes las sugerencias solo se podían
+   * tocar con el mouse: quien escribe y baja con la flecha no llegaba a ninguna.
+   * El foco se queda en el input y la opción resaltada se anuncia con
+   * aria-activedescendant, que es el patrón de combobox de ARIA.
+   */
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Escape") {
+      setOpen(false);
+      setActive(-1);
+      return;
+    }
+    if (!open || suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((i) => (i + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === "Enter" && active >= 0) {
+      // Con una sugerencia resaltada, Enter va a ese producto en vez de a la
+      // página de resultados: es lo que el lector de pantalla acaba de anunciar.
+      e.preventDefault();
+      const picked = suggestions[active];
+      if (picked) goTo(picked.slug);
+    }
+  }
+
   return (
     <div className={`relative ${className}`}>
       <form
@@ -70,11 +106,16 @@ export function SearchBar({ className = "" }: { className?: string }) {
           onBlur={() => {
             blurTimer.current = setTimeout(() => setOpen(false), 150);
           }}
-          onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+          onKeyDown={onKeyDown}
           placeholder="Buscar productos, marcas o códigos..."
           className="flex-1 bg-transparent px-4 py-2.5 text-sm text-fg outline-none placeholder:text-muted"
           aria-label="Buscar productos"
           autoComplete="off"
+          role="combobox"
+          aria-expanded={open && suggestions.length > 0}
+          aria-controls={LISTBOX_ID}
+          aria-autocomplete="list"
+          aria-activedescendant={active >= 0 ? optionId(active) : undefined}
         />
         <button
           type="submit"
@@ -86,18 +127,26 @@ export function SearchBar({ className = "" }: { className?: string }) {
       </form>
 
       {open && suggestions.length > 0 && (
-        <ul
+        <div
           className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-border bg-bg shadow-lg"
           onMouseDown={() => blurTimer.current && clearTimeout(blurTimer.current)}
         >
-          {suggestions.map((p) => {
-            const Icon = iconMap[p.iconName] ?? iconMap.bolt;
-            return (
-              <li key={p.id}>
-                <button
-                  type="button"
+          {/* Las opciones no son botones: en un listbox el foco se queda en el
+              input y la opción activa se señala con aria-activedescendant. */}
+          <ul id={LISTBOX_ID} role="listbox" aria-label="Sugerencias">
+            {suggestions.map((p, i) => {
+              const Icon = iconMap[p.iconName] ?? iconMap.bolt;
+              return (
+                <li
+                  key={p.id}
+                  id={optionId(i)}
+                  role="option"
+                  aria-selected={i === active}
+                  onMouseEnter={() => setActive(i)}
                   onClick={() => goTo(p.slug)}
-                  className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-surface"
+                  className={`flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left ${
+                    i === active ? "bg-surface" : ""
+                  }`}
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface">
                     <Icon className="h-5 w-5 text-muted/50" strokeWidth={1.5} />
@@ -109,20 +158,20 @@ export function SearchBar({ className = "" }: { className?: string }) {
                   <span className="shrink-0 text-sm font-medium text-fg">
                     {formatPrice(p.price)}
                   </span>
-                </button>
-              </li>
-            );
-          })}
-          <li>
-            <button
-              type="button"
-              onClick={() => submit({ preventDefault() {} } as React.FormEvent)}
-              className="w-full bg-surface px-3 py-2 text-center text-xs font-medium text-brand-600 hover:underline"
-            >
-              Ver todos los resultados para “{query.trim()}”
-            </button>
-          </li>
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+          {/* Fuera del listbox: no es una sugerencia sino la salida a la página
+              de resultados. Con el teclado se llega con Enter sin resaltar nada. */}
+          <button
+            type="button"
+            onClick={() => submit({ preventDefault() {} } as React.FormEvent)}
+            className="w-full bg-surface px-3 py-2 text-center text-xs font-medium text-brand-600 hover:underline"
+          >
+            Ver todos los resultados para “{query.trim()}”
+          </button>
+        </div>
       )}
     </div>
   );

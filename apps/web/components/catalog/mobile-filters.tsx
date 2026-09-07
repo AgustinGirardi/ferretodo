@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
+import { useModalKeys } from "../ui/use-modal-keys";
 import { CatalogFilters } from "./catalog-filters";
 
 interface MobileFiltersProps {
@@ -27,16 +28,8 @@ export function MobileFilters({
     };
   }, [open]);
 
-  // Escape cierra el panel: es lo que espera cualquiera que navegue con teclado,
-  // y sin esto la única salida era encontrar la X con el mouse.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+  // Escape, foco atrapado dentro del panel y devuelto al botón al cerrar.
+  const panelRef = useModalKeys(open, () => setOpen(false));
 
   return (
     <>
@@ -55,6 +48,7 @@ export function MobileFilters({
             onClick={() => setOpen(false)}
           />
           <div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-label="Filtros"

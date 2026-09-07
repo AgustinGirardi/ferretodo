@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Phone, HelpCircle, BadgePercent } from "lucide-react";
 import { site, whatsappLink } from "@/lib/site";
 import { iconMap, type IconName } from "@/lib/icons";
+import { useModalKeys } from "../ui/use-modal-keys";
 import { LogoMark } from "./logo-mark";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -32,16 +33,8 @@ export function MobileMenu({ categories }: { categories: MobileMenuCategory[] })
     };
   }, [open]);
 
-  // Escape cierra el menú: es lo que espera cualquiera que navegue con teclado,
-  // y sin esto la única salida era encontrar la X con el mouse.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+  // Escape, foco atrapado dentro del panel y devuelto al botón al cerrar.
+  const panelRef = useModalKeys(open, () => setOpen(false));
 
   return (
     <>
@@ -57,6 +50,7 @@ export function MobileMenu({ categories }: { categories: MobileMenuCategory[] })
             onClick={() => setOpen(false)}
           />
           <div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-label="Menú"

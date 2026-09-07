@@ -70,8 +70,8 @@ export const getHomeSettings = cache(async (): Promise<HomeSettings> => {
 
 export async function saveHomeSettings(values: HomeSettings): Promise<void> {
   // En transacción y no con Promise.all: SQLite serializa las escrituras, así
-  // que 16 upserts en paralelo compiten por el mismo lock (SQLITE_BUSY) y, si
-  // uno falla, la portada queda guardada a medias.
+  // que los 15 upserts en paralelo compiten por el mismo lock (SQLITE_BUSY) y,
+  // si uno falla, la portada queda guardada a medias.
   await prisma.$transaction(
     Object.entries(values).map(([k, v]) =>
       prisma.siteSetting.upsert({
