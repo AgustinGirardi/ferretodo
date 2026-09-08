@@ -15,9 +15,8 @@ const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  // res.cloudinary.com queda habilitado por next.config (remotePatterns);
   // data: y blob: los usa el preview de la imagen al subirla desde el panel.
-  "img-src 'self' data: blob: https://res.cloudinary.com",
+  "img-src 'self' data: blob:",
   // next/font descarga Inter en el build y la sirve desde el propio dominio.
   "font-src 'self'",
   "connect-src 'self'",
@@ -31,10 +30,12 @@ const csp = [
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@ferretodo/ui", "@ferretodo/types"],
+  // Sin remotePatterns a proposito: las fotos de producto se sirven desde el
+  // disco del propio servidor (/uploads). Habilitar un host externo aca deja
+  // que cualquiera, sin autenticarse, haga que el optimizador descargue y
+  // decodifique una imagen elegida por el via /_next/image?url=...
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "res.cloudinary.com" },
-    ],
+    remotePatterns: [],
   },
   async headers() {
     return [
