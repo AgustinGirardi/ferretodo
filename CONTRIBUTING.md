@@ -2,65 +2,76 @@
 
 ## Requisitos
 
-- Node.js ≥ 20 (probado con 24)
+- Node.js ≥ 20 (probado con 22 y 24)
 - pnpm 10 (`corepack enable`)
-- Docker (para Postgres + Redis locales)
+
+No hace falta Docker ni ningún servicio externo: la base es SQLite, un archivo local.
 
 ## Puesta en marcha (primera vez)
 
 ```bash
-# 1. Instalar dependencias del monorepo
+# 1. Dependencias del monorepo
 pnpm install
 
 # 2. Variables de entorno
-cp .env.example .env        # y completar lo necesario
+cp apps/web/.env.example apps/web/.env
+#    Completar AUTH_SECRET con 32+ caracteres aleatorios. El resto es opcional:
+#    sin RESEND_API_KEY los emails se simulan en consola y la compra funciona igual.
 
-# 3. Levantar Postgres + Redis + Mailhog
-pnpm docker:up
-
-# 4. Generar cliente Prisma + migrar + seed
-pnpm db:generate
+# 3. Crear la base y cargar datos de demostración
 pnpm db:migrate
 pnpm db:seed
 
-# 5. Levantar todo (web + api) en paralelo
+# 4. Levantar la app
 pnpm dev
 ```
 
-- Web: http://localhost:3000
-- API: http://localhost:4000/api/v1 · Docs: http://localhost:4000/api/docs
-- Mailhog (emails de dev): http://localhost:8025
+- **Tienda:** http://localhost:3000
+- **Panel admin:** http://localhost:3000/admin
+
+Las credenciales del admin de desarrollo se definen en `apps/web/prisma/seed.ts` y sirven
+**solo en local**. En producción no existe usuario por defecto: el admin inicial se crea en el
+primer arranque a partir de `ADMIN_EMAIL` y `ADMIN_PASSWORD` (ver `apps/web/lib/bootstrap.ts`).
 
 ## Estructura
 
 ```
-apps/web     Next.js (tienda + panel admin)
-apps/api     NestJS (API REST modular)
-packages/db  Prisma (schema, migraciones, seed)
-packages/ui  Design system
-packages/types   Tipos compartidos front ↔ back
-packages/config  Presets (Tailwind, TS)
+apps/web/            Next.js 15: tienda, panel admin y lógica de negocio
+  app/(shop)/        Rutas públicas
+  app/admin/         Panel (rutas y server actions)
+  app/api/           Route handlers
+  components/        Componentes de UI
+  lib/               Auth, sesiones, backups, rate limiting, emails, uploads
+  prisma/            Schema, migraciones, seed y simulador de datos
+packages/ui/         Design system compartido
+packages/config/     Presets de Tailwind y TypeScript
+docs/                Blueprint inicial (histórico, ver nota en el README)
 ```
 
-## Scripts útiles (raíz)
+## Scripts útiles (desde la raíz)
 
 | Comando | Qué hace |
 |---|---|
-| `pnpm dev` | Levanta web + api en watch |
-| `pnpm build` | Build de todo el monorepo (Turbo) |
-| `pnpm lint` / `pnpm typecheck` / `pnpm test` | Calidad |
-| `pnpm db:studio` | Prisma Studio (explorar la DB) |
-| `pnpm db:migrate` | Crear/aplicar migración de desarrollo |
-
-## ⚠️ Nota sobre OneDrive
-
-El repo está dentro de una carpeta sincronizada por OneDrive. `node_modules` está en
-`.gitignore`, pero conviene **excluir `node_modules` de la sincronización de OneDrive**
-(clic derecho → "Liberar espacio" / o configurar exclusión) para evitar lentitud y
-bloqueos de archivos durante `pnpm install` y los builds.
+| `pnpm dev` | Levanta la app en modo watch |
+| `pnpm build` | Build de producción (Turbo) |
+| `pnpm typecheck` | `tsc --noEmit` sobre el monorepo |
+| `pnpm test` | Tests |
+| `pnpm db:migrate` | Crea y aplica una migración de desarrollo |
+| `pnpm db:seed` | Recarga el catálogo de demostración |
+| `pnpm db:studio` | Prisma Studio para explorar la base |
 
 ## Convenciones
 
-- Commits: Conventional Commits (`feat:`, `fix:`, `chore:`…).
-- Ramas: `feat/<área>-<desc>`, PR a `main` con CI en verde.
-- Documentación viva en [`/docs`](./docs). Las tareas, en [`docs/07-TASKS.md`](./docs/07-TASKS.md).
+- **Autorización:** toda server action y todo route handler del panel resuelve su propia sesión
+  con `getAdminSession()`. No delegar la protección al middleware: las server actions son
+  endpoints POST invocables directamente.
+- **Secretos:** nunca en el repo. Van en `apps/web/.env` (ignorado por git) y, en producción,
+  en las variables de entorno de Render.
+- **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`…).
+- **Ramas:** `feat/<área>-<descripción>`, PR a `main` con la CI en verde.
+
+## Nota sobre carpetas sincronizadas en la nube
+
+Si clonás el repo dentro de OneDrive, Dropbox o similar, excluí `node_modules` y `.next` de la
+sincronización. De lo contrario aparecen copias de conflicto y errores `EPERM`/`EINVAL` sobre
+`.next` o el motor de Prisma durante los builds. Lo más simple es clonar fuera de esas carpetas.
