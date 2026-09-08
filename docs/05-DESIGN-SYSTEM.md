@@ -144,7 +144,7 @@ Tamaños: `sm`, `md`, `lg`, `icon`. Estados: hover, focus-visible (anillo), load
 ### Home (móvil)
 ```
 ┌───────────────────────────┐
-│ 0351-000-0000 · Lun-Vie... │  barra utilitaria
+│ 0351-000-0000 · Lun-Vie...│  barra utilitaria
 ├───────────────────────────┤
 │ ☰  FERRETODO   🔍  👤  🛒 │  header sticky
 ├───────────────────────────┤

@@ -1,14 +1,20 @@
 /** URL pública del sitio (para metadata, sitemap y robots). */
 export const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://ferretodo.com.ar";
 
-/** Datos del negocio FERRETODO. Fuente única para header, footer, contacto, etc. */
+/**
+ * Datos del negocio. Fuente única para header, footer, contacto, etc.
+ *
+ * ⚠️ Los datos de contacto y la dirección son de DEMOSTRACIÓN. Al desplegar la
+ * tienda para un comercio real hay que reemplazarlos acá (y solo acá: el resto
+ * de la app los lee de este archivo).
+ */
 export const site = {
   name: "FERRETODO",
   tagline: "Ferretería y Corralón",
   phone: "0351-000-0000",
   whatsapp: "5493510000000",
   address: "Av. Ejemplo 1234, Córdoba, Argentina",
-  city: "Río Cuarto",
+  city: "Córdoba",
   hours: [
     { days: "Lunes a Viernes", time: "08:00–12:00 y 15:30–19:30" },
     { days: "Sábados", time: "08:30–13:00" },
