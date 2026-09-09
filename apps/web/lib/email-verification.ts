@@ -55,8 +55,10 @@ export async function sendVerificationEmail(
     <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:520px;margin:0 auto;color:#0f172a">
       <h1 style="font-size:20px;margin:0 0 12px">Confirmá tu email</h1>
       <p style="margin:0 0 16px;line-height:1.5">
-        Hola ${escapeHtml(name.split(" ")[0] || name)}, creaste una cuenta en FERRETODO con este email.
-        Tocá el botón para confirmar que es tuyo.
+        Hola ${escapeHtml(name.split(" ")[0] || name)}: alguien creó una cuenta en FERRETODO
+        usando este email. Si fuiste vos, confirmalo con el botón. <strong>Si no fuiste vos,
+        ignorá este mensaje</strong> y no hagas nada: sin confirmación esa cuenta no puede
+        usarse ni asociarse a la tuya.
       </p>
       <p style="margin:0 0 20px">
         <a href="${link}" style="display:inline-block;background:#c74806;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600">

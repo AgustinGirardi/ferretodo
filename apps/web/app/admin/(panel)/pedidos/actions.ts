@@ -16,6 +16,19 @@ export async function updateOrderStatus(id: string, status: string) {
     const order = await tx.order.findUnique({ where: { id }, include: { items: true } });
     if (!order || order.status === status) return;
 
+    // El cambio de estado se hace PRIMERO y condicionado al estado que se acaba
+    // de leer. Antes el update iba al final y sin condición, así que la lectura
+    // de arriba era una guarda de mentira: dos cancelaciones simultáneas (un
+    // doble clic alcanza) leían las dos "PENDING", las dos pasaban, y las dos
+    // reponían stock, dejándolo inflado al doble. Hoy SQLite lo tapa porque
+    // serializa las transacciones, pero el esquema se declara portable a
+    // PostgreSQL y ahí el patrón sí se intercala y corrompe el stock en silencio.
+    const claimed = await tx.order.updateMany({
+      where: { id, status: order.status },
+      data: { status },
+    });
+    if (claimed.count === 0) return; // otro lo cambió primero: no tocar el stock
+
     // Al cancelar se repone el stock; si se revierte la cancelación se vuelve
     // a descontar (puede quedar negativo: señal de sobreventa para el dueño).
     if (status === "CANCELLED" && order.status !== "CANCELLED") {
@@ -33,8 +46,6 @@ export async function updateOrderStatus(id: string, status: string) {
         });
       }
     }
-
-    await tx.order.update({ where: { id }, data: { status } });
   });
 
   revalidatePath("/admin/pedidos");

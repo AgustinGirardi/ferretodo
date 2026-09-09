@@ -12,7 +12,22 @@ import { createHash } from "node:crypto";
  *
  * Se guardan 16 caracteres hexadecimales (64 bits): suficiente para que dos
  * contraseñas distintas no coincidan, y no expone el hash en la cookie.
+ *
+ * `sessionEpoch` existe porque el hash solo no alcanza para los clientes: una
+ * cuenta creada con Google no tiene contraseña, así que su huella era la del
+ * vacío —la MISMA constante para toda esa cohorte— y la comparación no podía
+ * fallar nunca. En los hechos esas sesiones eran irrevocables durante 30 días.
+ * El epoch es un contador que se incrementa cuando hay que expulsar sesiones
+ * (vincular Google sobre una cuenta local, "cerrar sesión en todos lados"), y
+ * al entrar en la huella invalida los tokens ya emitidos aunque no haya
+ * contraseña que cambiar.
  */
-export function sessionVersion(passwordHash: string | null | undefined): string {
-  return createHash("sha256").update(passwordHash ?? "").digest("hex").slice(0, 16);
+export function sessionVersion(
+  passwordHash: string | null | undefined,
+  sessionEpoch: number = 0,
+): string {
+  return createHash("sha256")
+    .update(`${passwordHash ?? ""}|${sessionEpoch}`)
+    .digest("hex")
+    .slice(0, 16);
 }

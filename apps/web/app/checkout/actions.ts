@@ -63,6 +63,15 @@ const MAX_QTY = 999;
 export async function createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
   const ip = await clientIp();
 
+  // Tope amplio de INVOCACIONES, aparte del tope de pedidos concretados de más
+  // abajo. Aquel se cuenta recién al final a propósito, para no bloquear a quien
+  // corrige el carrito ante un error de stock o precio; el efecto lateral era que
+  // todo intento fallido salía gratis y sin embargo ya había consultado la base.
+  // 60 invocaciones cada 10 minutos no las alcanza ningún comprador real.
+  if (isRateLimited(`order-attempt:${ip}`, 60, 10 * 60_000)) {
+    return { ok: false, error: "Demasiadas solicitudes seguidas. Esperá unos minutos." };
+  }
+
   const name = String(input.customer?.name ?? "").trim();
   const email = String(input.customer?.email ?? "").trim();
   const phone = String(input.customer?.phone ?? "").trim();
@@ -98,8 +107,20 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
     return { ok: false, error: "El pago en efectivo solo está disponible con retiro en el local." };
   }
 
-  if (!input.items?.length) return { ok: false, error: "El carrito está vacío." };
-  if (input.items.length > MAX_ITEMS) {
+  // `items` es lo único que se venía consumiendo confiando en el tipo de
+  // TypeScript, que en runtime no existe: esto es un endpoint POST y le puede
+  // llegar cualquier JSON. Un `productId` que fuera un objeto en vez de un string
+  // hacía explotar a Prisma con un 500 en lugar de devolver un error controlado.
+  const rawItems = Array.isArray(input.items) ? input.items : [];
+  const items = rawItems
+    .map((i) => ({
+      productId: String(i?.productId ?? ""),
+      qty: Number(i?.qty),
+    }))
+    .filter((i) => i.productId.length > 0 && i.productId.length <= 40);
+
+  if (!items.length) return { ok: false, error: "El carrito está vacío." };
+  if (items.length > MAX_ITEMS) {
     return { ok: false, error: "El carrito tiene demasiados productos distintos." };
   }
 
@@ -107,7 +128,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   // Solo productos activos y no borrados.
   const products = await prisma.product.findMany({
     where: {
-      id: { in: input.items.map((i) => i.productId) },
+      id: { in: items.map((i) => i.productId) },
       isActive: true,
       deletedAt: null,
     },
@@ -117,16 +138,16 @@ export async function createOrder(input: CreateOrderInput): Promise<CreateOrderR
   // Si algún producto del carrito ya no está disponible (dado de baja o borrado
   // entre que se agregó y el confirm), NO se crea un pedido parcial en silencio:
   // se rechaza para que el cliente revise y no crea que compró algo que no compró.
-  if (input.items.some((i) => !byId.has(i.productId))) {
+  if (items.some((i) => !byId.has(i.productId))) {
     return {
       ok: false,
       error: "Uno o más productos del carrito ya no están disponibles. Revisalo antes de confirmar.",
     };
   }
 
-  const lines = input.items.map((i) => {
+  const lines = items.map((i) => {
     const p = byId.get(i.productId)!;
-    const qty = Math.min(MAX_QTY, Math.max(1, Math.round(Number(i.qty) || 1)));
+    const qty = Math.min(MAX_QTY, Math.max(1, Math.round(i.qty || 1)));
     return {
       productId: p.id,
       productName: p.name,

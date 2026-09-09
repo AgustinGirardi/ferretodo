@@ -156,7 +156,9 @@ export function parseQuery(sp: Record<string, string | string[] | undefined>): C
   };
   return {
     category: one(sp.category),
-    brands: many(sp.brand),
+    // Tope de marcas: cada una entra en un IN (…) de SQLite, y la query string
+    // admite repetir ?brand= sin límite.
+    brands: many(sp.brand).slice(0, 20),
     minPrice: num(sp.minPrice),
     maxPrice: num(sp.maxPrice),
     onSale: one(sp.onSale) === "1",
@@ -297,6 +299,17 @@ function forms(word: string): string[] {
  * El reemplazo de fondo (FTS o Meilisearch) ya está en docs/01-ARCHITECTURE.md.
  */
 const SEARCH_SCAN_LIMIT = 2000;
+
+/**
+ * Tope de resultados que devuelve la página /buscar.
+ *
+ * El escaneo ya estaba acotado, pero lo que se DEVOLVÍA no: con un término muy
+ * común la página renderizaba una tarjeta por cada coincidencia, hasta 2000, en
+ * un HTML de varios megabytes. Repetir ese GET desde una sola conexión saturaba
+ * la única instancia. Nadie mira dos mil resultados: quien no encuentra lo que
+ * busca en los primeros afina el término.
+ */
+export const SEARCH_PAGE_MAX = 48;
 
 export async function searchProducts(q: string, limit?: number): Promise<Product[]> {
   const term = normalize(q.trim());

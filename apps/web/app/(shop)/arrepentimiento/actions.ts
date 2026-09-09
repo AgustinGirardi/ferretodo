@@ -14,14 +14,22 @@ export interface WithdrawalState {
   error?: string;
 }
 
+/**
+ * Código legible para el cliente. Acotado a 10 intentos, como
+ * `candidateOrderNumber` en el checkout: el espacio `AR-AAAA-NNNNN` es de 90.000
+ * por año y un `while (true)` con una consulta por vuelta no termina nunca si se
+ * llena, bloqueando el request contra la única conexión de SQLite. Es preferible
+ * un código más feo que un cuelgue.
+ */
 async function uniqueCode(): Promise<string> {
   const year = new Date().getFullYear();
-  while (true) {
+  for (let attempt = 0; attempt < 10; attempt++) {
     const n = Math.floor(10000 + Math.random() * 90000);
     const candidate = `AR-${year}-${n}`;
     const existing = await prisma.withdrawalRequest.findUnique({ where: { code: candidate } });
     if (!existing) return candidate;
   }
+  return `AR-${year}-${Date.now().toString().slice(-8)}`;
 }
 
 export async function createWithdrawalRequest(

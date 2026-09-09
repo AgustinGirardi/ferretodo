@@ -3,7 +3,9 @@ import Link from "next/link";
 import { SearchX } from "lucide-react";
 import { Breadcrumbs } from "@/components/catalog/breadcrumbs";
 import { ProductGrid } from "@/components/catalog/product-grid";
-import { searchProducts, getBestSellers } from "@/lib/products";
+import { searchProducts, getBestSellers, SEARCH_PAGE_MAX } from "@/lib/products";
+import { clientIp } from "@/lib/client-ip";
+import { isRateLimited } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -18,9 +20,35 @@ export default async function SearchPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q = "" } = await searchParams;
-  const query = q.trim();
-  const results = query ? await searchProducts(query) : [];
+  // Se recorta el término como ya hace /api/search: el largo no aporta nada a la
+  // búsqueda y sí al costo de normalizar contra cada fila.
+  const query = q.trim().slice(0, 100);
+
+  // La route handler de /api/search estaba limitada, esta página no, y es la más
+  // cara de las dos: escanea el catálogo y renderiza los resultados en el
+  // servidor. Sin freno, un GET repetido bastaba para tumbar la instancia.
+  const limited = query ? isRateLimited(`search-page:${await clientIp()}`, 30, 60_000) : false;
+
+  // Se pide uno más que el tope para saber si hubo que recortar, sin contar todo.
+  const found = limited || !query ? [] : await searchProducts(query, SEARCH_PAGE_MAX + 1);
+  const truncated = found.length > SEARCH_PAGE_MAX;
+  const results = truncated ? found.slice(0, SEARCH_PAGE_MAX) : found;
   const bestSellers = await getBestSellers(4);
+
+  if (limited) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <Breadcrumbs items={[{ label: "Búsqueda" }]} />
+        <div className="mt-8 flex flex-col items-center gap-3 rounded-lg border border-dashed border-border py-16 text-center">
+          <SearchX className="h-10 w-10 text-muted" />
+          <p className="text-sm font-medium text-fg">Demasiadas búsquedas seguidas</p>
+          <p className="max-w-sm text-sm text-muted">
+            Esperá unos segundos y volvé a intentarlo.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -38,7 +66,9 @@ export default async function SearchPage({
 
       {query && (
         <p className="mt-1 text-sm text-muted">
-          {results.length} {results.length === 1 ? "resultado" : "resultados"}
+          {truncated
+            ? `Más de ${SEARCH_PAGE_MAX} resultados. Mostramos los primeros ${SEARCH_PAGE_MAX}: probá con más palabras para achicar la búsqueda.`
+            : `${results.length} ${results.length === 1 ? "resultado" : "resultados"}`}
         </p>
       )}
 

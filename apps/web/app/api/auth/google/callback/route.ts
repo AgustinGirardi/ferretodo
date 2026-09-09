@@ -47,9 +47,28 @@ export async function GET(request: Request) {
           return toAccount(request, "cuenta_existente");
         }
         // Google ya verificó el email, así que la cuenta queda verificada también.
+        //
+        // Se da de baja la contraseña local y se incrementa el epoch de sesiones.
+        // El motivo no es de higiene sino de un ataque concreto: un tercero podía
+        // registrar el email de la víctima con una contraseña suya, y el mail de
+        // confirmación —que daba por hecho que la cuenta la había creado quien lo
+        // recibía— conseguía que la víctima tocara el botón. Con `emailVerifiedAt`
+        // ya seteado, la guarda de arriba dejaba de disparar y este update pegaba
+        // el googleId de la víctima sobre la fila del atacante, que conservaba su
+        // contraseña y su sesión. Borrar el hash le saca la credencial, y el epoch
+        // le corta las cookies que ya tenía abiertas.
+        //
+        // Consecuencia buscada: al vincular Google, la cuenta pasa a entrar solo
+        // con Google. Es la única opción segura, porque desde acá no hay forma de
+        // distinguir a un dueño que eligió vincular de una víctima de lo anterior.
         customer = await prisma.customer.update({
           where: { id: byEmail.id },
-          data: { googleId: profile.sub, emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date() },
+          data: {
+            googleId: profile.sub,
+            emailVerifiedAt: byEmail.emailVerifiedAt ?? new Date(),
+            passwordHash: null,
+            sessionEpoch: { increment: 1 },
+          },
         });
       } else {
         customer = await prisma.customer.create({
@@ -63,7 +82,7 @@ export async function GET(request: Request) {
       }
     }
 
-    await createCustomerSession(customer.id, customer.passwordHash);
+    await createCustomerSession(customer.id, customer.passwordHash, customer.sessionEpoch);
     return toAccount(request);
   } catch (e) {
     // Falla de red con Google, carrera de creación (P2002), etc: redirect con

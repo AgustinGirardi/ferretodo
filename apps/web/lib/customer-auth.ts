@@ -6,10 +6,20 @@ import { sessionVersion } from "./session-version";
 
 export const CUSTOMER_SESSION_COOKIE = "ft_customer";
 
-export async function createCustomerSession(customerId: string, passwordHash: string | null) {
-  // pv ata el token a la contraseña vigente (ver lib/session-version.ts). Las
-  // cuentas de Google no tienen contraseña propia: ahí la huella es la del vacío.
-  const token = await new SignJWT({ sub: customerId, typ: "customer", pv: sessionVersion(passwordHash) })
+export async function createCustomerSession(
+  customerId: string,
+  passwordHash: string | null,
+  sessionEpoch: number = 0,
+) {
+  // pv ata el token a la contraseña vigente Y al epoch de sesiones de la cuenta
+  // (ver lib/session-version.ts). El epoch es lo que permite revocar las cuentas
+  // de Google, que no tienen contraseña propia y por eso compartían todas la
+  // misma huella.
+  const token = await new SignJWT({
+    sub: customerId,
+    typ: "customer",
+    pv: sessionVersion(passwordHash, sessionEpoch),
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("30d")
@@ -38,9 +48,11 @@ export async function getCustomerSession(): Promise<{ sub: string } | null> {
     const sub = String(payload.sub);
     const customer = await prisma.customer.findUnique({
       where: { id: sub },
-      select: { passwordHash: true },
+      select: { passwordHash: true, sessionEpoch: true },
     });
-    if (!customer || payload.pv !== sessionVersion(customer.passwordHash)) return null;
+    if (!customer || payload.pv !== sessionVersion(customer.passwordHash, customer.sessionEpoch)) {
+      return null;
+    }
     return { sub };
   } catch {
     return null;

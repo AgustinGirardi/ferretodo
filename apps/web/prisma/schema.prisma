@@ -31,6 +31,11 @@ model Customer {
   // manda al registrarse, o login con Google, que ya lo verifica). null = sin
   // verificar: la fila la pudo crear cualquiera con el email de otra persona.
   emailVerifiedAt DateTime?
+  // Contador para invalidar las sesiones abiertas de esta cuenta. Va dentro del
+  // token (ver lib/session-version.ts); incrementarlo deja afuera a todos los
+  // dispositivos. Hace falta porque las cuentas de Google no tienen contraseña
+  // y sin esto no había forma de revocarles la cookie.
+  sessionEpoch Int      @default(0)
   createdAt    DateTime @default(now())
   orders       Order[]
 }

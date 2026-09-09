@@ -96,7 +96,9 @@ function useAuthSuccess(pending: boolean, state: AuthState) {
   const router = useRouter();
   const wasPending = useRef(false);
   useEffect(() => {
-    if (wasPending.current && !pending && !state.error) {
+    // `notice` es el resultado del registro, que ya no abre sesión: refrescar
+    // dejaría la pantalla igual y se perdería el aviso de "revisá tu correo".
+    if (wasPending.current && !pending && !state.error && !state.notice) {
       if (state.admin) {
         // Credenciales de admin: directo al panel (navegación completa para
         // que el middleware vea la cookie recién creada).
@@ -166,6 +168,12 @@ function RegisterForm() {
 
       {state.error && (
         <p className="rounded-md bg-[#fceaea] px-3 py-2 text-sm text-[#a32d2d]">{state.error}</p>
+      )}
+
+      {state.notice && (
+        <p className="rounded-md border border-success bg-surface px-3 py-2 text-sm text-fg">
+          {state.notice}
+        </p>
       )}
 
       <button

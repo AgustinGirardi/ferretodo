@@ -6,7 +6,7 @@ import { formatPrice } from "@/lib/format";
 import { orderStatus } from "@/lib/order-status";
 import { googleEnabled } from "@/lib/google-oauth";
 import { CustomerAuthForms } from "@/components/account/customer-auth-forms";
-import { logoutCustomer, resendVerification } from "./actions";
+import { logoutCustomer, logoutEverywhere, resendVerification } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -110,14 +110,27 @@ export default async function AccountPage({
           <h1 className="text-2xl font-bold text-fg">Hola, {customer.name.split(" ")[0]}</h1>
           <p className="text-sm text-muted">{customer.email}</p>
         </div>
-        <form action={logoutCustomer}>
-          <button
-            type="submit"
-            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm text-fg transition-colors hover:bg-surface"
-          >
-            <LogOut className="h-4 w-4" /> Cerrar sesión
-          </button>
-        </form>
+        <div className="flex flex-col items-end gap-1.5">
+          <form action={logoutCustomer}>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-sm text-fg transition-colors hover:bg-surface"
+            >
+              <LogOut className="h-4 w-4" /> Cerrar sesión
+            </button>
+          </form>
+          {/* Única forma de invalidar una cookie robada: la sesión dura 30 días y
+              no hay cambio de contraseña del lado cliente (menos aún en las
+              cuentas de Google, que no tienen contraseña propia). */}
+          <form action={logoutEverywhere}>
+            <button
+              type="submit"
+              className="rounded-md px-1 py-0.5 text-xs text-muted underline underline-offset-2 transition-colors hover:text-fg"
+            >
+              Cerrar sesión en todos los dispositivos
+            </button>
+          </form>
+        </div>
       </div>
 
       <h2 className="mb-3 flex items-center gap-2 font-medium text-fg">
